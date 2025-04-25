@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_page.dart';
 import 'screens/career_profiles_page.dart';
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
         useMaterial3: true,
-        fontFamily: 'Poppins',
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       initialRoute: '/',
       routes: {

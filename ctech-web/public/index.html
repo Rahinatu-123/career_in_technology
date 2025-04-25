@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career in Technology</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #ff6a00;
+            --secondary-color: #333;
+            --background-color: #f5f5f5;
+            --card-color: #fff;
+            --text-color: #333;
+            --light-text: #666;
+            --border-color: #ddd;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding-bottom: 70px;
+        }
+        
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .search-bar {
+            display: flex;
+            background-color: white;
+            border-radius: 25px;
+            padding: 8px 15px;
+            margin-top: 10px;
+        }
+        
+        .search-bar input {
+            border: none;
+            outline: none;
+            flex: 1;
+            padding: 5px;
+        }
+        
+        .search-bar i {
+            color: var(--light-text);
+        }
+        
+        .categories {
+            display: flex;
+            overflow-x: auto;
+            padding: 15px;
+            background-color: var(--card-color);
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-right: 20px;
+            min-width: 60px;
+        }
+        
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            background-color: var(--background-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+        
+        .category-icon i {
+            font-size: 20px;
+            color: var(--primary-color);
+        }
+        
+        .category-name {
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .section-title {
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .career-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            padding: 0 15px;
+        }
+        
+        .career-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .career-image {
+            height: 120px;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .career-image i {
+            font-size: 40px;
+            color: var(--light-text);
+        }
+        
+        .career-info {
+            padding: 10px;
+        }
+        
+        .career-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .career-description {
+            font-size: 12px;
+            color: var(--light-text);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .stories-section {
+            margin-top: 20px;
+        }
+        
+        .story-card {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 15px 15px 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .story-header {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+        }
+        
+        .story-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #eee;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .story-avatar i {
+            font-size: 20px;
+            color: var(--light-text);
+        }
+        
+        .story-info {
+            flex: 1;
+        }
+        
+        .story-name {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .story-role {
+            font-size: 12px;
+            color: var(--light-text);
+        }
+        
+        .story-content {
+            padding: 0 10px 10px 10px;
+        }
+        
+        .story-quote {
+            font-style: italic;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .story-text {
+            font-size: 12px;
+            color: var(--light-text);
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--card-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--light-text);
+            text-decoration: none;
+        }
+        
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Career in Technology</h1>
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search careers, tech terms...">
+        </div>
+    </header>
+    
+    <div class="categories">
+        <div class="category-item">
+            <div class="category-icon">
+                <i class="fas fa-code"></i>
+            </div>
+            <div class="category-name">Development</div>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="category-name">Data</div>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="category-name">Security</div>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div class="category-name">Mobile</div>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">
+                <i class="fas fa-cloud"></i>
+            </div>
+            <div class="category-name">Cloud</div>
+        </div>
+        <div class="category-item">
+            <div class="category-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="category-name">AI</div>
+        </div>
+    </div>
+    
+    <div class="section-title">Popular Careers</div>
+    <div class="career-cards">
+        <div class="career-card">
+            <div class="career-image">
+                <i class="fas fa-code"></i>
+            </div>
+            <div class="career-info">
+                <div class="career-title">Software Developer</div>
+                <div class="career-description">Create applications and systems that power our digital world</div>
+            </div>
+        </div>
+        <div class="career-card">
+            <div class="career-image">
+                <i class="fas fa-database"></i>
+            </div>
+            <div class="career-info">
+                <div class="career-title">Data Scientist</div>
+                <div class="career-description">Analyze data to help businesses make better decisions</div>
+            </div>
+        </div>
+        <div class="career-card">
+            <div class="career-image">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="career-info">
+                <div class="career-title">Cybersecurity</div>
+                <div class="career-description">Protect systems and data from cyber threats</div>
+            </div>
+        </div>
+        <div class="career-card">
+            <div class="career-image">
+                <i class="fas fa-mobile-alt"></i>
+            </div>
+            <div class="career-info">
+                <div class="career-title">Mobile Developer</div>
+                <div class="career-description">Build apps for smartphones and tablets</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stories-section">
+        <div class="section-title">Success Stories</div>
+        <div class="story-card">
+            <div class="story-header">
+                <div class="story-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="story-info">
+                    <div class="story-name">Sarah Johnson</div>
+                    <div class="story-role">Senior Software Engineer at Google</div>
+                </div>
+            </div>
+            <div class="story-content">
+                <div class="story-quote">"From self-taught programmer to leading tech teams"</div>
+                <div class="story-text">I started coding as a hobby in college. After graduating with a non-tech degree, I taught myself programming through online courses and built a portfolio of projects. Today, I lead a team of developers at Google...</div>
+            </div>
+        </div>
+        
+        <div class="story-card">
+            <div class="story-header">
+                <div class="story-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="story-info">
+                    <div class="story-name">Michael Chen</div>
+                    <div class="story-role">Data Science Lead at Amazon</div>
+                </div>
+            </div>
+            <div class="story-content">
+                <div class="story-quote">"How I transitioned from finance to data science"</div>
+                <div class="story-text">After working in finance for 5 years, I realized my passion was in data analysis. I took online courses in Python and machine learning, then applied for data science roles. Within 2 years, I was leading a team...</div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active">
+            <div class="nav-icon"><i class="fas fa-home"></i></div>
+            <div class="nav-label">Home</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-search"></i></div>
+            <div class="nav-label">Explore</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-bookmark"></i></div>
+            <div class="nav-label">Saved</div>
+        </a>
+        <a href="#" class="nav-item">
+            <div class="nav-icon"><i class="fas fa-user"></i></div>
+            <div class="nav-label">Profile</div>
+        </a>
+    </nav>
+</body>
+</html> 
