@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Career in Technology
 
 A platform to explore careers in technology, featuring:
@@ -36,3 +37,6 @@ View the UI design in Figma: [Figma Design Link](https://www.figma.com/file/your
 ## Contributing
 
 Feel free to submit issues and enhancement requests! 
+=======
+# career_in_technology
+>>>>>>> 73c0951719cecadc95155c06e9158e60626f6e15
