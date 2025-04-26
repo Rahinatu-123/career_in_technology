@@ -1,61 +1,45 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../widgets/loading_indicator.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _navigateToSignup();
-  }
-
-  Future<void> _navigateToSignup() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/signup');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2E7D32),
+      backgroundColor: const Color(0xFF0A2A36),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.school,
-              size: 100,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 24),
             const Text(
-              'CTech',
+              'CTECH',
               style: TextStyle(
-                fontSize: 32,
+                color: Colors.white,
+                fontSize: 44,
                 fontWeight: FontWeight.bold,
+                letterSpacing: 4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Accent underline
+            Container(
+              width: 80,
+              height: 5,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(3),
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 28),
             const Text(
-              'Discover Your Tech Career Path',
+              'Ignite Your Passion For Tech',
               style: TextStyle(
-                fontSize: 16,
                 color: Colors.white70,
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                letterSpacing: 1,
               ),
-            ),
-            const SizedBox(height: 32),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
