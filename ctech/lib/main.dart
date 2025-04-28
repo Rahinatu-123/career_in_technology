@@ -11,6 +11,8 @@ import 'screens/personal_info_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/verify_otp_screen.dart';
 import 'screens/reset_password_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -57,4 +59,24 @@ class MyApp extends StatelessWidget {
       },
     );
   }
+}
+
+Future<bool> verifyOTP(String email, String otp) async {
+  final response = await http.post(
+    Uri.parse('http://your-server.com/verify_otp.php'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email, 'otp': otp}),
+  );
+  final data = jsonDecode(response.body);
+  return data['success'] == true;
+}
+
+Future<bool> sendOTP(String email) async {
+  final response = await http.post(
+    Uri.parse('http://your-server.com/send_otp.php'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email}),
+  );
+  final data = jsonDecode(response.body);
+  return data['success'] == true;
 }
