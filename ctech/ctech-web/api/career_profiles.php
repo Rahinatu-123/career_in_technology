@@ -1,16 +1,69 @@
 <?php
 require_once 'config.php';
 
-// Get all career profiles
+// Get all career profiles or search
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $conn = getDBConnection();
     
+    // Build the query based on search parameters
+    $where_conditions = [];
+    $params = [];
+    $types = "";
+    
+    if (isset($_GET['search'])) {
+        $search = "%{$_GET['search']}%";
+        $where_conditions[] = "(title LIKE ? OR description LIKE ? OR skills LIKE ?)";
+        $params[] = $search;
+        $params[] = $search;
+        $params[] = $search;
+        $types .= "sss";
+    }
+    
+    if (isset($_GET['min_salary'])) {
+        $where_conditions[] = "CAST(SUBSTRING_INDEX(salary_range, '-', 1) AS DECIMAL) >= ?";
+        $params[] = $_GET['min_salary'];
+        $types .= "d";
+    }
+    
+    if (isset($_GET['education_level'])) {
+        $where_conditions[] = "education LIKE ?";
+        $params[] = "%{$_GET['education_level']}%";
+        $types .= "s";
+    }
+    
     $sql = "SELECT * FROM career_profiles";
-    $result = $conn->query($sql);
+    if (!empty($where_conditions)) {
+        $sql .= " WHERE " . implode(" AND ", $where_conditions);
+    }
+    
+    if (!empty($params)) {
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        $result = $conn->query($sql);
+    }
     
     $profiles = [];
     if ($result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
+            // Get related tech words
+            $stmt = $conn->prepare("
+                SELECT tw.* FROM tech_words tw
+                INNER JOIN word_careers wc ON tw.id = wc.word_id
+                WHERE wc.career_id = ?
+            ");
+            $stmt->bind_param("i", $row['id']);
+            $stmt->execute();
+            $wordResult = $stmt->get_result();
+            
+            $relatedWords = [];
+            while($word = $wordResult->fetch_assoc()) {
+                $relatedWords[] = $word;
+            }
+            
+            $row['related_tech_words'] = $relatedWords;
             $profiles[] = $row;
         }
     }
