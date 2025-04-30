@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../data/career_profiles_data.dart';
-import '../models/career_profile.dart';
 import '../models/inspiring_story.dart';
 import 'career_detail_page.dart';
 

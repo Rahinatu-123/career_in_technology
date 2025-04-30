@@ -15,7 +15,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _isLoading = false;
+  final bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -43,7 +43,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final darkBlue = const Color(0xFF0A2A36);
+    const darkBlue = Color(0xFF0A2A36);
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -220,7 +220,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 },
                                 child: Text(
                                   'Login',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: darkBlue,
                                     fontWeight: FontWeight.bold,
                                   ),

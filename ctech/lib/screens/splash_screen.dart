@@ -41,7 +41,7 @@ class SplashScreen extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 36),
+            const SizedBox(height: 36),
             SizedBox(
               width: 200,
               child: ElevatedButton(
@@ -49,7 +49,7 @@ class SplashScreen extends StatelessWidget {
                   Navigator.pushReplacementNamed(context, '/login');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0A2A36),
+                  backgroundColor: const Color(0xFF0A2A36),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

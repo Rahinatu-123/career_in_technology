@@ -16,7 +16,7 @@ After graduation, I worked at a local startup in Accra, where I learned the rope
 My big break came when I was selected for the Google Africa Developer Scholarship program. 
 This opportunity helped me refine my skills and connect with mentors in the industry.
 
-Today, I work at Google\'s headquarters in Mountain View, California, leading a team that develops 
+Today, I work at Google's headquarters in Mountain View, California, leading a team that develops 
 innovative solutions for emerging markets. My advice to aspiring tech professionals in Ghana is to 
 never stop learning and to take advantage of every opportunity to grow your skills.
 
@@ -35,12 +35,12 @@ Embrace your unique perspective and use it to create solutions that make a diffe
       shortQuote: 'Using data to drive positive change in Africa',
       fullStory: '''
 My passion for data science began during my undergraduate studies at KNUST, where I was fascinated 
-by how data could be used to solve real-world problems. After completing my master\'s degree in 
-Data Science, I joined MTN Ghana\'s analytics team.
+by how data could be used to solve real-world problems. After completing my master's degree in 
+Data Science, I joined MTN Ghana's analytics team.
 
 In my role, I lead a team that uses data to improve customer experience and drive business decisions. 
-We\'ve developed innovative solutions that have helped MTN better serve its customers and contribute 
-to Ghana\'s digital transformation.
+We've developed innovative solutions that have helped MTN better serve its customers and contribute 
+to Ghana's digital transformation.
 
 One of my proudest achievements is developing a predictive model that helps identify areas where 
 network infrastructure is most needed, ensuring better connectivity for rural communities.
@@ -59,12 +59,12 @@ programming. The field is constantly evolving, so continuous learning is key to 
       imagePath: 'assets/images/esi_bonsu.jpg',
       shortQuote: 'Protecting Ghana\'s digital infrastructure',
       fullStory: '''
-As a Network Security Specialist, I play a crucial role in protecting Ghana\'s critical digital 
+As a Network Security Specialist, I play a crucial role in protecting Ghana's critical digital 
 infrastructure. My journey began with a degree in Computer Engineering from the University of Ghana, 
 followed by specialized training in cybersecurity.
 
-I\'ve worked on several high-profile projects, including securing government networks and developing 
-cybersecurity protocols for financial institutions. My work has helped strengthen Ghana\'s digital 
+I've worked on several high-profile projects, including securing government networks and developing 
+cybersecurity protocols for financial institutions. My work has helped strengthen Ghana's digital 
 defenses and protect against cyber threats.
 
 What I love most about my job is the constant challenge and the opportunity to make a real impact 

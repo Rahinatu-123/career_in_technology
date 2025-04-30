@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'login_screen.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   final String email;
@@ -22,6 +21,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   bool _isLoading = false;
+
+  static const darkBlue = Color(0xFF0A2A36);
 
   @override
   void dispose() {
@@ -60,6 +61,12 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Icon(
+                    Icons.person_outline,
+                    size: 80,
+                    color: darkBlue,
+                  ),
+                  const SizedBox(height: 24),
                   const Text(
                     'Complete Your Profile',
                     style: TextStyle(
@@ -82,10 +89,20 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   // First Name Field
                   TextFormField(
                     controller: _firstNameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'First Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: darkBlue, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -99,10 +116,20 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   // Last Name Field
                   TextFormField(
                     controller: _lastNameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Last Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: darkBlue, width: 2),
+                      ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -120,10 +147,20 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
                     ],
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Phone Number',
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.phone),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.grey),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: darkBlue, width: 2),
+                      ),
                       hintText: '0241234567',
                     ),
                     validator: (value) {
@@ -143,13 +180,20 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     onPressed: _isLoading ? null : _completeSignup,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: const Color(0xFF2E7D32),
+                      backgroundColor: darkBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text(
                             'Complete Signup',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                   ),
                 ],
