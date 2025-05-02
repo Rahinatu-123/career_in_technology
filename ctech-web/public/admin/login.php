@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Database error: Users table does not exist';
         } else {
             // Prepare SQL statement to prevent SQL injection
-            $sql = "SELECT id, email, password, first_name, last_name, role FROM users WHERE email = ?";
+            $sql = "SELECT id, email, password, firstname, lastname, role FROM users WHERE email = ?";
             $stmt = $conn->prepare($sql);
             
             if ($stmt === false) {
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Set session variables
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['email'] = $user['email'];
-                        $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
+                        $_SESSION['full_name'] = $user['firstname'] . ' ' . $user['lastname'];
                         $_SESSION['role'] = $user['role'];
                         
                         // Update last login time

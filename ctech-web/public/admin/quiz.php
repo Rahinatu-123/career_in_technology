@@ -208,11 +208,6 @@ foreach ($questions as $question) {
                                 <i class="fas fa-chart-bar me-2"></i> Analytics
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="settings.php">
-                                <i class="fas fa-cog me-2"></i> Settings
-                            </a>
-                        </li>
                         <li class="nav-item mt-3">
                             <a class="nav-link" href="logout.php">
                                 <i class="fas fa-sign-out-alt me-2"></i> Logout

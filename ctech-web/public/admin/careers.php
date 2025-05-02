@@ -251,7 +251,6 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
                 <li><a href="quiz.php"><i class="fas fa-question-circle"></i> Career Quiz</a></li>
                 <li><a href="app_users.php"><i class="fas fa-users"></i> App Users</a></li>
                 <li><a href="analytics.php"><i class="fas fa-chart-bar"></i> Analytics</a></li>
-                <li><a href="settings.php"><i class="fas fa-cog"></i> Settings</a></li>
                 <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </div>
