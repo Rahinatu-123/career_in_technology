@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/feature_card.dart';
 import '../data/career_profiles_data.dart';
 import '../models/career_profile.dart';
 import 'career_detail_page.dart';
 import 'settings_page.dart';
+import 'login_screen.dart';
+import 'career_profiles_page.dart';
+import 'career_quiz_page.dart';
+import 'inspiring_stories_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,22 +22,31 @@ class _HomePageState extends State<HomePage> {
   String _searchQuery = '';
   static const darkBlue = Color(0xFF0A2A36);
   int _selectedIndex = 0;
+  List<CareerProfile> _filteredProfiles = [];
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _checkAuth();
+    _filteredProfiles = CareerProfilesData.profiles;
   }
 
-  List<CareerProfile> get _filteredCareers {
-    if (_searchQuery.isEmpty) {
-      return CareerProfilesData.profiles.take(4).toList();
+  Future<void> _checkAuth() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('is_logged_in') ?? false;
+    
+    if (!isLoggedIn && mounted) {
+      Navigator.pushReplacementNamed(context, '/login');
     }
-    return CareerProfilesData.profiles
-        .where((profile) =>
-            profile.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            profile.description.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+  }
+
+  void _filterProfiles(String query) {
+    setState(() {
+      _filteredProfiles = CareerProfilesData.profiles.where((profile) {
+        return profile.title.toLowerCase().contains(query.toLowerCase()) ||
+               profile.description.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    });
   }
 
   void _onItemTapped(int index) {
@@ -58,6 +72,17 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _navigateToProfile() {
+    // Will be implemented when profile page is ready
+    Navigator.pushNamed(context, '/profile');
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,7 +99,9 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon: const Icon(Icons.notifications_outlined, color: Colors.white),
                 onPressed: () {
-                  // TODO: Implement notifications
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Notifications coming soon!')),
+                  );
                 },
               ),
               // Settings Icon
@@ -107,11 +134,9 @@ class _HomePageState extends State<HomePage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Row(
                       children: [
-                        // User Avatar (Make it tappable)
+                        // User Avatar
                         GestureDetector(
-                          onTap: () {
-                            // TODO: Navigate to profile page
-                          },
+                          onTap: _navigateToProfile,
                           child: Container(
                             width: 50,
                             height: 50,
@@ -120,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
+                                  color: Colors.black.withAlpha(25),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -134,12 +159,10 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        // User Info (Make it tappable)
+                        // User Info
                         Expanded(
                           child: GestureDetector(
-                            onTap: () {
-                              // TODO: Navigate to profile page
-                            },
+                            onTap: _navigateToProfile,
                             child: const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,17 +200,23 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 controller: _searchController,
-                onChanged: (value) => setState(() => _searchQuery = value),
+                onChanged: _filterProfiles,
                 decoration: InputDecoration(
-                  hintText: 'Search careers...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[100],
+                  hintText: 'Search careers, tech terms...',
+                  hintStyle: const TextStyle(color: Colors.white70),
+                  border: InputBorder.none,
+                  prefixIcon: const Icon(Icons.search, color: Colors.white70),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.white70),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterProfiles('');
+                          },
+                        )
+                      : null,
                 ),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
@@ -218,7 +247,7 @@ class _HomePageState extends State<HomePage> {
                     child: _QuickAccessButton(
                       icon: Icons.lightbulb,
                       label: 'Tech Words',
-                      onTap: () => Navigator.pushNamed(context, '/tech-word'),
+                      onTap: () => Navigator.pushNamed(context, '/tech-words'),
                     ),
                   ),
                 ],
@@ -261,9 +290,9 @@ class _HomePageState extends State<HomePage> {
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: _filteredCareers.length,
+                    itemCount: _filteredProfiles.length,
                     itemBuilder: (context, index) {
-                      final career = _filteredCareers[index];
+                      final career = _filteredProfiles[index];
                       return _CareerCard(career: career);
                     },
                   ),
@@ -330,7 +359,7 @@ class _QuickAccessButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withAlpha(13),
                 blurRadius: 8,
                 offset: const Offset(0, 4),
               ),
@@ -368,7 +397,7 @@ class _CareerCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CareerDetailPage(profile: career),
+            builder: (context) => CareerDetailPage(career: career),
           ),
         );
       },
@@ -378,7 +407,7 @@ class _CareerCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(13),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),

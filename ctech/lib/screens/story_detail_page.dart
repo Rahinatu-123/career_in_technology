@@ -1,15 +1,54 @@
 import 'package:flutter/material.dart';
-import '../data/career_profiles_data.dart';
 import '../models/inspiring_story.dart';
+import '../models/career_profile.dart';
+import '../services/api_service.dart';
 import 'career_detail_page.dart';
 
-class StoryDetailPage extends StatelessWidget {
+class StoryDetailPage extends StatefulWidget {
   final InspiringStory story;
 
   const StoryDetailPage({
     super.key,
     required this.story,
   });
+
+  @override
+  State<StoryDetailPage> createState() => _StoryDetailPageState();
+}
+
+class _StoryDetailPageState extends State<StoryDetailPage> {
+  final ApiService _apiService = ApiService();
+  List<CareerProfile> relatedCareers = [];
+  bool isLoading = true;
+  String error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRelatedCareers();
+  }
+
+  Future<void> _loadRelatedCareers() async {
+    try {
+      final careers = await _apiService.getCareers();
+      if (mounted) {
+        setState(() {
+          relatedCareers = careers.where((career) => 
+            widget.story.relatedCareers.contains(career.id.toString())
+          ).toList();
+          isLoading = false;
+          error = '';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          error = e.toString();
+          isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,23 +78,31 @@ class StoryDetailPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       shape: BoxShape.circle,
+                      image: widget.story.imagePath.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(widget.story.imagePath),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
+                    child: widget.story.imagePath.isEmpty
+                        ? Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          )
+                        : null,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    story.name,
+                    widget.story.name,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${story.role} at ${story.company}',
+                    '${widget.story.role} at ${widget.story.company}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.grey[600],
                     ),
@@ -72,14 +119,14 @@ class StoryDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              story.fullStory,
+              widget.story.fullStory,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            if (story.audioPath != null) ...[
+            if (widget.story.audioPath != null) ...[
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 onPressed: () {
-                  // TODO: Implement audio playback
+                  // TODO: Implement audio playback using just_audio package
                 },
                 icon: const Icon(Icons.headphones),
                 label: const Text('Listen to Their Story'),
@@ -96,11 +143,23 @@ class StoryDetailPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            ...story.relatedCareers.map((careerId) {
-              final career = CareerProfilesData.profiles.firstWhere(
-                (profile) => profile.id == careerId,
-              );
-              return Padding(
+            if (isLoading)
+              const Center(
+                child: CircularProgressIndicator(),
+              )
+            else if (error.isNotEmpty)
+              Center(
+                child: Text(
+                  'Failed to load related careers: $error',
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              )
+            else if (relatedCareers.isEmpty)
+              const Center(
+                child: Text('No related careers found'),
+              )
+            else
+              ...relatedCareers.map((career) => Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Card(
                   child: ListTile(
@@ -114,15 +173,14 @@ class StoryDetailPage extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                           builder: (context) => CareerDetailPage(
-                            profile: career,
+                            career: career,
                           ),
                         ),
                       );
                     },
                   ),
                 ),
-              );
-            }),
+              )),
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: () {

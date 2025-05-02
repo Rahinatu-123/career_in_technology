@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../models/inspiring_story.dart';
+import '../services/api_service.dart';
 import 'story_detail_page.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class InspiringStoriesPage extends StatefulWidget {
   const InspiringStoriesPage({super.key});
@@ -12,6 +12,7 @@ class InspiringStoriesPage extends StatefulWidget {
 }
 
 class _InspiringStoriesPageState extends State<InspiringStoriesPage> {
+  final ApiService _apiService = ApiService();
   List<InspiringStory> stories = [];
   bool isLoading = true;
   String error = '';
@@ -24,60 +25,110 @@ class _InspiringStoriesPageState extends State<InspiringStoriesPage> {
 
   Future<void> fetchStories() async {
     try {
-      final response = await http.get(
-        Uri.parse('http://localhost/ctech-web/api/inspiring_stories.php'),
-      );
+      // Check network connectivity first
+      final connectivityResult = await Connectivity().checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) {
+        throw Exception('No internet connection. Please check your network settings and try again.');
+      }
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+      final fetchedStories = await _apiService.fetchInspiringStories();
+      if (mounted) {
         setState(() {
-          stories = data.map((story) => InspiringStory(
-            id: story['id'].toString(),
-            name: story['name'],
-            role: story['role'],
-            company: story['company'],
-            imagePath: story['image_path'],
-            shortQuote: story['short_quote'],
-            fullStory: story['full_story'],
-            audioPath: story['audio_path'],
-            relatedCareers: List<String>.from(story['related_careers']),
-          )).toList();
+          stories = fetchedStories;
           isLoading = false;
-        });
-      } else {
-        setState(() {
-          error = 'Failed to load stories';
-          isLoading = false;
+          error = '';
         });
       }
     } catch (e) {
-      setState(() {
-        error = 'Error: $e';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          error = e.toString().replaceAll('Exception: ', '');
+          isLoading = false;
+        });
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0A2A36),
       appBar: AppBar(
-        title: const Text('Inspiring Stories'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        title: const Text(
+          'Inspiring Stories',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color(0xFF0A2A36),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : error.isNotEmpty
-              ? Center(child: Text(error))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: stories.length,
-                  itemBuilder: (context, index) {
-                    final story = stories[index];
-                    return StoryCard(story: story);
-                  },
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            isLoading = true;
+            error = '';
+          });
+          await fetchStories();
+        },
+        child: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.white,
                 ),
+              )
+            : error.isNotEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                          child: Text(
+                            error,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              isLoading = true;
+                              error = '';
+                            });
+                            fetchStories();
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0A2A36),
+                            backgroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : stories.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No stories available',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: stories.length,
+                        itemBuilder: (context, index) {
+                          final story = stories[index];
+                          return StoryCard(story: story);
+                        },
+                      ),
+      ),
     );
   }
 }
@@ -94,7 +145,8 @@ class StoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),
-      elevation: 2,
+      color: const Color(0xFF153B4D),
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -119,14 +171,22 @@ class StoryCard extends StatelessWidget {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                      color: Colors.white10,
                       borderRadius: BorderRadius.circular(30),
+                      image: story.imagePath.isNotEmpty
+                          ? DecorationImage(
+                              image: NetworkImage(story.imagePath),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    child: Icon(
-                      Icons.person,
-                      size: 30,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                    child: story.imagePath.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            size: 30,
+                            color: Colors.white54,
+                          )
+                        : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -135,14 +195,17 @@ class StoryCard extends StatelessWidget {
                       children: [
                         Text(
                           story.name,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           '${story.role} at ${story.company}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[600],
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
                           ),
                         ),
                       ],
@@ -153,26 +216,68 @@ class StoryCard extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 story.shortQuote,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
                   fontStyle: FontStyle.italic,
                 ),
               ),
               const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Read More',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                  if (story.audioPath != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.play_arrow,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Play Audio',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.primary,
+                  Row(
+                    children: [
+                      const Text(
+                        'Read More',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white10,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

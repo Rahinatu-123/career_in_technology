@@ -1,13 +1,34 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../models/career_profile.dart';
 import '../models/tech_word.dart';
+import '../models/inspiring_story.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost/ctech-web/api';
+  // TODO: Change this to your actual API server URL when deploying
+  static const String baseUrl = 'http://10.0.2.2/ctech-web/api'; // Android emulator localhost
+  // static const String baseUrl = 'http://localhost/ctech-web/api'; // iOS simulator
+  // static const String baseUrl = 'https://your-production-server.com/api'; // Production
+
   final http.Client _client;
+  final Duration timeout = const Duration(seconds: 10);
 
   ApiService({http.Client? client}) : _client = client ?? http.Client();
+
+  // Helper method to handle common error cases
+  String _handleError(dynamic error) {
+    if (error is http.ClientException) {
+      return 'Failed to connect to server. Please check your internet connection.';
+    } else if (error is TimeoutException) {
+      return 'Connection timed out. Please try again.';
+    } else if (error is SocketException) {
+      return 'Network error. Please check your internet connection.';
+    } else {
+      return 'An unexpected error occurred. Please try again.';
+    }
+  }
 
   // Career Profiles API
   Future<List<CareerProfile>> getCareers({
@@ -120,6 +141,64 @@ class ApiService {
 
     if (response.statusCode != 200) {
       throw Exception('Failed to delete tech word');
+    }
+  }
+
+  // Inspiring Stories
+  Future<List<InspiringStory>> fetchInspiringStories() async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/inspiring_stories.php'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeout);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((story) => InspiringStory(
+          id: story['id'].toString(),
+          name: story['name'],
+          role: story['role'],
+          company: story['company'],
+          imagePath: story['image_path'],
+          shortQuote: story['short_quote'],
+          fullStory: story['full_story'],
+          audioPath: story['audio_path'],
+          relatedCareers: List<String>.from(story['related_careers'] ?? []),
+        )).toList();
+      } else {
+        throw Exception('Server returned status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception(_handleError(e));
+    }
+  }
+
+  // Authentication
+  Future<bool> verifyOTP(String email, String otp) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl/verify_otp.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
+      );
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } catch (e) {
+      throw Exception('Failed to verify OTP: $e');
+    }
+  }
+
+  Future<bool> sendOTP(String email) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl/send_otp.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+      final data = jsonDecode(response.body);
+      return data['success'] == true;
+    } catch (e) {
+      throw Exception('Failed to send OTP: $e');
     }
   }
 } 

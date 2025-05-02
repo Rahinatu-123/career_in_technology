@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_page.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+const String baseUrl = 'http://localhost/ctech-web/api';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,10 +32,39 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(seconds: 2));
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        // For testing purposes, we'll simulate a successful login
+        // In production, replace this with actual API call
+        await Future.delayed(const Duration(seconds: 1));
+        
+        // Store user data in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user_email', _emailController.text);
+        await prefs.setString('user_name', 'Test User');
+        await prefs.setBool('is_logged_in', true);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login successful!')),
+          );
+          Navigator.pushReplacementNamed(context, '/home');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('An error occurred. Please try again.')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -163,8 +197,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: _isLoading ? null : _login,
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
-                                backgroundColor: Colors.white,
-                                foregroundColor: darkBlue,
+                                backgroundColor: darkBlue,
+                                foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),

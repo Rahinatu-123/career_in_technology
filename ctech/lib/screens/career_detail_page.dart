@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 import '../models/career_profile.dart';
 
 class CareerDetailPage extends StatelessWidget {
-  final CareerProfile profile;
+  final CareerProfile career;
 
   const CareerDetailPage({
     super.key,
-    required this.profile,
+    required this.career,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF0A2A36),
       appBar: AppBar(
-        title: Text(profile.title),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        title: Text(
+          career.title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: const Color(0xFF0A2A36),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -26,91 +34,130 @@ class CareerDetailPage extends StatelessWidget {
               width: double.infinity,
               height: 200,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
+                color: const Color(0xFF153B4D),
                 borderRadius: BorderRadius.circular(12),
+                image: career.imagePath.isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(career.imagePath),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: Icon(
-                Icons.work,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              child: career.imagePath.isEmpty
+                  ? const Icon(
+                      Icons.work,
+                      size: 80,
+                      color: Colors.white24,
+                    )
+                  : null,
             ),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'Description',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              profile.description,
-              style: Theme.of(context).textTheme.bodyLarge,
+              career.description,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'Required Skills',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            ...profile.skills.map((skill) => Padding(
+            ...career.skills.split(', ').map((skill) => Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       skill,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
               ),
             )),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'Real-life Applications',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            ...profile.applications.map((application) => Padding(
+            ...career.applications.map((application) => Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.arrow_right,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward,
+                      size: 16,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       application,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ],
               ),
             )),
-            if (profile.videoPath != null || profile.audioPath != null) ...[
+            if (career.videoPath != null || career.audioPath != null) ...[
               const SizedBox(height: 24),
-              Text(
+              const Text(
                 'Learn More',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
-              if (profile.videoPath != null)
+              if (career.videoPath != null)
                 ElevatedButton.icon(
                   onPressed: () {
                     // TODO: Implement video playback
@@ -118,10 +165,15 @@ class CareerDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.play_circle),
                   label: const Text('Watch Video'),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white10,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
-              if (profile.audioPath != null) ...[
+              if (career.audioPath != null) ...[
                 const SizedBox(height: 8),
                 ElevatedButton.icon(
                   onPressed: () {
@@ -130,7 +182,12 @@ class CareerDetailPage extends StatelessWidget {
                   icon: const Icon(Icons.headphones),
                   label: const Text('Listen to Expert'),
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white10,
+                    foregroundColor: Colors.white,
                     minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ],

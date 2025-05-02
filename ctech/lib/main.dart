@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'providers/theme_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_page.dart';
 import 'screens/career_profiles_page.dart';
 import 'screens/career_quiz_page.dart';
 import 'screens/inspiring_stories_page.dart';
+import 'screens/tech_words_page.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/personal_info_screen.dart';
@@ -14,41 +17,57 @@ import 'screens/reset_password_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return MaterialApp(
       title: 'CTech',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E7D32), // Green theme
+          seedColor: const Color(0xFF0A2A36),
           brightness: Brightness.light,
         ),
         useMaterial3: true,
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      initialRoute: '/',
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0A2A36),
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
+      ),
+      themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      home: const SplashScreen(),
       routes: {
-        '/': (context) => const SplashScreen(),
+        '/home': (context) => const HomePage(),
+        '/career-profiles': (context) => const CareerProfilesPage(),
+        '/career-quiz': (context) => const CareerQuizPage(),
+        '/inspiring-stories': (context) => const InspiringStoriesPage(),
+        '/tech-words': (context) => const TechWordsPage(),
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/personal-info': (context) => PersonalInfoScreen(
           email: '',
           password: '',
         ),
-        '/home': (context) => const HomePage(),
-        '/career-profiles': (context) => const CareerProfilesPage(),
-        '/career-quiz': (context) => const CareerQuizPage(),
-        '/inspiring-stories': (context) => const InspiringStoriesPage(),
         '/forgot-password': (context) => const ForgotPasswordScreen(),
         '/verify-otp': (context) => VerifyOTPScreen(
           email: '',
@@ -57,7 +76,6 @@ class MyApp extends StatelessWidget {
           email: '',
           otp: '',
         ),
-        // Add other routes here as we create them
       },
     );
   }

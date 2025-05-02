@@ -11,6 +11,10 @@ class CareerProfile {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<TechWord> relatedTechWords;
+  final List<String> applications;
+  final String imagePath;
+  final String? videoPath;
+  final String? audioPath;
 
   CareerProfile({
     required this.id,
@@ -23,6 +27,10 @@ class CareerProfile {
     required this.createdAt,
     required this.updatedAt,
     this.relatedTechWords = const [],
+    this.applications = const [],
+    required this.imagePath,
+    this.videoPath,
+    this.audioPath,
   });
 
   factory CareerProfile.fromJson(Map<String, dynamic> json) {
@@ -39,6 +47,10 @@ class CareerProfile {
       relatedTechWords: (json['related_tech_words'] as List?)
           ?.map((word) => TechWord.fromJson(word))
           .toList() ?? [],
+      applications: (json['applications'] as List?)?.cast<String>() ?? [],
+      imagePath: json['image_path'] ?? '',
+      videoPath: json['video_path'],
+      audioPath: json['audio_path'],
     );
   }
 
@@ -51,6 +63,10 @@ class CareerProfile {
       'education': education,
       'salary_range': salaryRange,
       'job_outlook': jobOutlook,
+      'applications': applications,
+      'image_path': imagePath,
+      'video_path': videoPath,
+      'audio_path': audioPath,
     };
   }
 } 
