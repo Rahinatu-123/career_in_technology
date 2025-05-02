@@ -10,8 +10,8 @@ class CareerProfilesData {
       education: 'Bachelor\'s degree in Computer Science or related field',
       salaryRange: '\$70,000 - \$120,000',
       jobOutlook: 'Excellent growth potential',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
       applications: [
         'Mobile apps',
         'Web applications',
@@ -31,8 +31,8 @@ class CareerProfilesData {
       education: 'Master\'s degree in Data Science, Statistics, or related field',
       salaryRange: '\$80,000 - \$140,000',
       jobOutlook: 'High demand',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
       applications: [
         'Predictive analytics',
         'Business intelligence',
@@ -52,8 +52,8 @@ class CareerProfilesData {
       education: 'Bachelor\'s degree in Design, HCI, or related field',
       salaryRange: '\$60,000 - \$110,000',
       jobOutlook: 'Growing field',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
       applications: [
         'Web design',
         'Mobile app design',
@@ -73,8 +73,8 @@ class CareerProfilesData {
       education: 'Bachelor\'s degree in Network Engineering or related field',
       salaryRange: '\$65,000 - \$130,000',
       jobOutlook: 'Steady growth',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      createdAt: DateTime.now().toIso8601String(),
+      updatedAt: DateTime.now().toIso8601String(),
       applications: [
         'Network infrastructure',
         'Cloud computing',

@@ -1,5 +1,6 @@
 <?php
-require_once 'config.php';
+require_once '../db/config.php';
+require_once 'functions.php';
 
 // Get all tech words or filter by career
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {

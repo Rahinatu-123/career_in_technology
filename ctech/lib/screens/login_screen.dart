@@ -6,6 +6,7 @@ import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/api_service.dart';
 
 const String baseUrl = 'http://localhost/ctech-web/api';
 
@@ -35,28 +36,35 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = true;
       });
-
       try {
-        // For testing purposes, we'll simulate a successful login
-        // In production, replace this with actual API call
-        await Future.delayed(const Duration(seconds: 1));
-        
-        // Store user data in SharedPreferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('user_email', _emailController.text);
-        await prefs.setString('user_name', 'Test User');
-        await prefs.setBool('is_logged_in', true);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful!')),
-          );
-          Navigator.pushReplacementNamed(context, '/home');
+        final api = ApiService();
+        final response = await api.login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        if (response['success'] == true) {
+          final user = response['user'];
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_email', user['email']);
+          await prefs.setString('user_name', user['firstname'] + ' ' + user['lastname']);
+          await prefs.setBool('is_logged_in', true);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Login successful!')),
+            );
+            Navigator.pushReplacementNamed(context, '/home');
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(response['error'] ?? 'Login failed.')),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('An error occurred. Please try again.')),
+            SnackBar(content: Text('An error occurred. Please try again.')),
           );
         }
       } finally {

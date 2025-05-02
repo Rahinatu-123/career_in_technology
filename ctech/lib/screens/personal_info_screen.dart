@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/api_service.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   final String email;
@@ -35,12 +36,36 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   Future<void> _completeSignup() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
-      // TODO: Implement actual signup logic with backend
-      await Future.delayed(const Duration(seconds: 2)); // Simulate network delay
-      
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+      try {
+        final api = ApiService();
+        final response = await api.signup(
+          firstname: _firstNameController.text.trim(),
+          lastname: _lastNameController.text.trim(),
+          email: widget.email.trim(),
+          password: widget.password,
+        );
+        if (response['success'] == true) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Signup successful! Please login.')),
+            );
+            Navigator.pushReplacementNamed(context, '/login');
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(response['error'] ?? 'Signup failed.')),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Signup failed: $e')),
+          );
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }

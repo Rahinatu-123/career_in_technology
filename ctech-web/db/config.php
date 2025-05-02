@@ -1,8 +1,8 @@
 <?php
 $host = 'localhost';      // Database host
-$db   = 'webtech_fall2024_rahinatu_lawal';  // Database name
+$db   = 'career_tech_db';  // Database name for local development
 $user = 'root';            // Database username (default for XAMPP)
-$password = 'studyNest4*';                // Database password (default empty for XAMPP)
+$password = '';            // Database password (default empty for XAMPP)
 
 // Create connection
 $conn = new mysqli($host, $user, $password, $db);

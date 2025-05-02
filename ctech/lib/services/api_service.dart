@@ -8,7 +8,7 @@ import '../models/inspiring_story.dart';
 
 class ApiService {
   // TODO: Change this to your actual API server URL when deploying
-  static const String baseUrl = 'http://10.0.2.2/ctech-web/api'; // Android emulator localhost
+  static const String baseUrl = 'http://localhost/ctech-web/api';
   // static const String baseUrl = 'http://localhost/ctech-web/api'; // iOS simulator
   // static const String baseUrl = 'https://your-production-server.com/api'; // Production
 
@@ -68,18 +68,17 @@ class ApiService {
   }
 
   // Tech Words API
-  Future<List<TechWord>> getTechWords({int? careerId}) async {
-    final queryParams = <String, String>{};
-    if (careerId != null) queryParams['career_id'] = careerId.toString();
-
-    final uri = Uri.parse('$baseUrl/tech_words.php').replace(queryParameters: queryParams);
-    final response = await _client.get(uri);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => TechWord.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load tech words');
+  Future<List<TechWord>> getTechWords() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/tech_words.php'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => TechWord.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load tech words');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
     }
   }
 
@@ -200,5 +199,96 @@ class ApiService {
     } catch (e) {
       throw Exception('Failed to send OTP: $e');
     }
+  }
+
+  // Fetch Career Profiles
+  Future<List<CareerProfile>> getCareerProfiles({String? search}) async {
+    try {
+      String url = '$baseUrl/career_profiles.php';
+      if (search != null && search.isNotEmpty) {
+        url += '?search=$search';
+      }
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        if (responseData['success'] == true) {
+          final List<dynamic> data = responseData['data'];
+          return data.map((json) => CareerProfile.fromJson(json)).toList();
+        } else {
+          throw Exception(responseData['error'] ?? 'Failed to load careers');
+        }
+      } else {
+        throw Exception('Failed to load careers');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  // Fetch Inspiring Stories
+  Future<List<dynamic>> getInspiringStories() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/inspiring_stories.php'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load stories');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  // Get Tech Words by Career
+  Future<List<TechWord>> getTechWordsByCareer(int careerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/tech_words.php?career_id=$careerId')
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => TechWord.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load tech words for career');
+      }
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+
+  // Signup API
+  Future<Map<String, dynamic>> signup({
+    required String firstname,
+    required String lastname,
+    required String email,
+    required String password,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/signup.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'firstname': firstname,
+        'lastname': lastname,
+        'email': email,
+        'password': password,
+      }),
+    );
+    return json.decode(response.body);
+  }
+
+  // Login API
+  Future<Map<String, dynamic>> login({
+    required String email,
+    required String password,
+  }) async {
+    final response = await _client.post(
+      Uri.parse('$baseUrl/login.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'email': email,
+        'password': password,
+      }),
+    );
+    return json.decode(response.body);
   }
 } 

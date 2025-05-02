@@ -138,7 +138,7 @@ class _CareerDetailsScreenState extends State<CareerDetailsScreen> {
                   final word = _techWords[index];
                   return Card(
                     child: ExpansionTile(
-                      title: Text(word.term),
+                      title: Text(word.word),
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -146,15 +146,6 @@ class _CareerDetailsScreenState extends State<CareerDetailsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(word.definition),
-                              if (word.example != null) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Example: ${word.example}',
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ),

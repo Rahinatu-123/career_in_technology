@@ -35,7 +35,11 @@ class CareerRepository {
 
   // Tech Words
   Future<List<TechWord>> getTechWords({int? careerId}) async {
-    return _apiService.getTechWords(careerId: careerId);
+    if (careerId != null) {
+      return _apiService.getTechWordsByCareer(careerId);
+    } else {
+      return _apiService.getTechWords();
+    }
   }
 
   Future<TechWord> createTechWord(TechWord word) async {

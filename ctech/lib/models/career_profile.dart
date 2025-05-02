@@ -8,8 +8,8 @@ class CareerProfile {
   final String education;
   final String salaryRange;
   final String jobOutlook;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String createdAt;
+  final String updatedAt;
   final List<TechWord> relatedTechWords;
   final List<String> applications;
   final String imagePath;
@@ -42,8 +42,8 @@ class CareerProfile {
       education: json['education'],
       salaryRange: json['salary_range'],
       jobOutlook: json['job_outlook'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      createdAt: json['created_at']?.toString() ?? '',
+      updatedAt: json['updated_at']?.toString() ?? '',
       relatedTechWords: (json['related_tech_words'] as List?)
           ?.map((word) => TechWord.fromJson(word))
           .toList() ?? [],
@@ -63,10 +63,13 @@ class CareerProfile {
       'education': education,
       'salary_range': salaryRange,
       'job_outlook': jobOutlook,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
       'applications': applications,
       'image_path': imagePath,
       'video_path': videoPath,
       'audio_path': audioPath,
+      'related_tech_words': relatedTechWords.map((word) => word.toJson()).toList(),
     };
   }
 } 
