@@ -1,0 +1,35 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Flutter/Dart specific
+*.dart text
+*.h text
+*.cc text
+*.cpp text
+*.txt text
+*.yaml text
+*.json text
+*.md text
+*.html text
+*.css text
+*.js text
+*.php text
+
+# Binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.woff2 binary
+
+# Flutter generated files
+*.g.dart text
+*.freezed.dart text
+*.mocks.dart text
+
+# Generated plugin files
+generated_plugin_registrant.* text
+GeneratedPluginRegistrant.* text 

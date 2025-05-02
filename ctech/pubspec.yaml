@@ -33,13 +33,14 @@ dependencies:
   http: ^1.1.0
   cupertino_icons: ^1.0.2
   provider: ^6.0.5
-  shared_preferences: ^2.5.3
+  shared_preferences: ^2.2.2
   image_picker: ^1.0.4
   google_fonts: ^4.0.0
   flutter_secure_storage: ^9.0.0
   intl: ^0.18.1
   url_launcher: ^6.2.4
   cached_network_image: ^3.3.0
+  connectivity_plus: ^5.0.2
 
 dev_dependencies:
   flutter_test:
