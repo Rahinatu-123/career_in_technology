@@ -1,48 +1,35 @@
 <?php
-// Enable error reporting
+// Database configuration
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'ctech');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+
+// Error reporting
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-try {
-    $host = 'localhost';
-    $dbname = 'career_tech_db';
-    $username = 'root';
-    $password = '';
-    
-    // Test MySQL connection first
-    $mysql = new mysqli($host, $username, $password);
-    if ($mysql->connect_error) {
-        throw new Exception("MySQL Connection Error: " . $mysql->connect_error);
+// Set timezone
+date_default_timezone_set('UTC');
+
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Function to get database connection
+function getDBConnection() {
+    try {
+        $conn = new PDO(
+            "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME,
+            DB_USER,
+            DB_PASS
+        );
+        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $conn;
+    } catch(PDOException $e) {
+        error_log("Connection failed: " . $e->getMessage());
+        throw $e;
     }
-    
-    // Check if database exists
-    $result = $mysql->query("SHOW DATABASES LIKE '$dbname'");
-    if ($result->num_rows == 0) {
-        throw new Exception("Database '$dbname' does not exist. Please create it first.");
-    }
-    
-    // Close MySQL connection
-    $mysql->close();
-    
-    // Create PDO connection
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_TIMEOUT => 5 // Set timeout to 5 seconds
-    ]);
-    
-    // Test the connection
-    $pdo->query("SELECT 1");
-    
-} catch (Exception $e) {
-    die(json_encode([
-        'success' => false,
-        'error' => $e->getMessage(),
-        'details' => [
-            'host' => $host,
-            'dbname' => $dbname,
-            'username' => $username,
-            'error_code' => $e->getCode()
-        ]
-    ]));
-} 
+}
+?> 

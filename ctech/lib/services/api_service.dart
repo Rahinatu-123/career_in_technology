@@ -7,15 +7,25 @@ import '../models/tech_word.dart';
 import '../models/inspiring_story.dart';
 
 class ApiService {
-  // Update base URL to match your web application
-  static const String baseUrl = 'http://10.0.2.2/ctech-web/api';
-  // For development/testing, you can use:
-  // static const String baseUrl = 'http://localhost/ctech-web/api'; // iOS simulator
-  // static const String baseUrl = 'http://your-domain.com/ctech-web/api'; // Production
+  // For Android emulator:
+  static const String baseUrl = 'http://10.0.2.2:8000/ctech-web/api';
+  // For web/desktop, use:
+  // static const String baseUrl = 'http://localhost:8000/ctech-web/api';
+
+  // Common headers for all requests
+  static const Map<String, String> _headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  };
+
+  // Timeout configuration
+  static const Duration _connectionTimeout = Duration(seconds: 15);
+  static const Duration _receiveTimeout = Duration(seconds: 15);
+  static const int _maxRetries = 3;
+  static const Duration _retryDelay = Duration(seconds: 2);
 
   final http.Client _client;
-  final Duration timeout = const Duration(seconds: 10);
-
+  
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
   // Helper method to handle common error cases
@@ -28,6 +38,22 @@ class ApiService {
       return 'Network error. Please check your internet connection and make sure XAMPP is running.';
     } else {
       return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
+  // Helper method to handle timeouts and retries
+  Future<T> _withTimeoutAndRetry<T>(Future<T> Function() operation) async {
+    int attempts = 0;
+    while (true) {
+      try {
+        return await operation().timeout(_receiveTimeout);
+      } catch (e) {
+        attempts++;
+        if (attempts >= _maxRetries) {
+          rethrow;
+        }
+        await Future.delayed(_retryDelay);
+      }
     }
   }
 
@@ -74,7 +100,7 @@ class ApiService {
       final response = await _client.get(
         Uri.parse('$baseUrl/tech_words.php'),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(timeout);
+      ).timeout(_connectionTimeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -154,7 +180,7 @@ class ApiService {
       final response = await _client.get(
         Uri.parse('$baseUrl/inspiring_stories.php'),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(timeout);
+      ).timeout(_connectionTimeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -216,7 +242,7 @@ class ApiService {
       final response = await _client.get(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(timeout);
+      ).timeout(_connectionTimeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -235,7 +261,7 @@ class ApiService {
       final response = await _client.get(
         Uri.parse('$baseUrl/inspiring_stories.php'),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(timeout);
+      ).timeout(_connectionTimeout);
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -253,7 +279,7 @@ class ApiService {
       final response = await _client.get(
         Uri.parse('$baseUrl/tech_words.php?career_id=$careerId'),
         headers: {'Content-Type': 'application/json'},
-      ).timeout(timeout);
+      ).timeout(_connectionTimeout);
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -286,38 +312,303 @@ class ApiService {
     return json.decode(response.body);
   }
 
-  // Login API
+  // Login API with improved timeout handling
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
+    print('Attempting login for email: $email');
+    return _withTimeoutAndRetry(() async {
+      try {
+        print('Sending login request to: $baseUrl/login.php');
+        final response = await _client.post(
+          Uri.parse('$baseUrl/login.php'),
+          headers: _headers,
+          body: jsonEncode({
+            'email': email,
+            'password': password,
+          }),
+        ).timeout(_connectionTimeout);
+
+        print('Received response with status: ${response.statusCode}');
+        print('Response body: ${response.body}');
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          
+          if (data['success'] == true && data['user'] != null) {
+            print('Login successful');
+            return {
+              'success': true,
+              'user': data['user'],
+            };
+          } else if (data['error'] != null) {
+            print('Login failed: ${data['error']}');
+            return {
+              'success': false,
+              'error': data['error'],
+            };
+          } else {
+            print('Invalid response format');
+            return {
+              'success': false,
+              'error': 'Invalid response format',
+            };
+          }
+        } else if (response.statusCode == 401) {
+          print('Invalid credentials');
+          return {
+            'success': false,
+            'error': 'Invalid email or password',
+          };
+        } else if (response.statusCode == 404) {
+          print('Login endpoint not found');
+          return {
+            'success': false,
+            'error': 'Login endpoint not found',
+          };
+        } else {
+          print('Server error: ${response.statusCode}');
+          return {
+            'success': false,
+            'error': 'Server error: ${response.statusCode}',
+          };
+        }
+      } catch (e) {
+        print('Login error: $e');
+        if (e is TimeoutException) {
+          return {
+            'success': false,
+            'error': 'Connection timed out. Please check your internet connection and try again.',
+          };
+        }
+        return {
+          'success': false,
+          'error': _handleError(e),
+        };
+      }
+    });
+  }
+}
+
+class ContactService {
+  // Environment-specific base URLs
+  static const String _devBaseUrl = 'http://10.0.2.2/contactmgt/actions';
+  static const String _prodBaseUrl = 'https://apps.ashesi.edu.gh/contactmgt/actions';
+  
+  // Use the appropriate base URL based on environment
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product') 
+      ? _prodBaseUrl 
+      : _devBaseUrl;
+
+  final http.Client _client;
+  final Duration timeout = const Duration(seconds: 10);
+
+  ContactService({http.Client? client}) : _client = client ?? http.Client();
+
+  // Common headers for all requests
+  static const Map<String, String> _headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  };
+
+  // Retry configuration
+  static const int _maxRetries = 3;
+  static const Duration _retryDelay = Duration(seconds: 2);
+
+  // Helper method to retry failed requests
+  Future<T> _retry<T>(Future<T> Function() operation) async {
+    int attempts = 0;
+    while (true) {
+      try {
+        return await operation();
+      } catch (e) {
+        attempts++;
+        if (attempts >= _maxRetries) {
+          rethrow;
+        }
+        await Future.delayed(_retryDelay);
+      }
+    }
+  }
+
+  // Helper method to handle common error cases
+  String _handleError(dynamic error) {
+    if (error is http.ClientException) {
+      return 'Failed to connect to server. Please check your internet connection.';
+    } else if (error is TimeoutException) {
+      return 'Connection timed out. Please try again.';
+    } else if (error is SocketException) {
+      return 'Network error. Please check your internet connection.';
+    } else {
+      return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAllContacts() async {
+    return _retry(() async {
+      try {
+        final response = await _client.get(
+          Uri.parse('$baseUrl/get_all_contact_mob'),
+          headers: _headers,
+        ).timeout(timeout);
+
+        if (response.statusCode == 200) {
+          final dynamic decodedData = json.decode(response.body);
+          
+          if (decodedData is List) {
+            return List<Map<String, dynamic>>.from(decodedData);
+          } else if (decodedData is Map && decodedData.containsKey('data')) {
+            final List<dynamic> data = decodedData['data'];
+            return List<Map<String, dynamic>>.from(data);
+          }
+          return [];
+        } else {
+          throw Exception('Failed to load contacts: ${response.statusCode}');
+        }
+      } catch (e) {
+        throw Exception(_handleError(e));
+      }
+    });
+  }
+
+  Future<Map<String, dynamic>> getSingleContact(int contactId) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('$baseUrl/get_a_contact_mob?contid=$contactId'),
+        headers: _headers,
+      ).timeout(timeout);
+
+      if (response.statusCode == 200) {
+        final dynamic decodedData = json.decode(response.body);
+        
+        if (decodedData is List) {
+          return decodedData.isNotEmpty ? Map<String, dynamic>.from(decodedData[0]) : {};
+        } else if (decodedData is Map) {
+          return Map<String, dynamic>.from(decodedData);
+        }
+        return {};
+      } else {
+        throw Exception('Failed to load contact: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception(_handleError(e));
+    }
+  }
+
+  // Helper method to validate response
+  Map<String, dynamic> _validateResponse(http.Response response) {
+    if (response.statusCode == 200) {
+      try {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'message': 'Operation successful',
+          'data': data,
+        };
+      } catch (e) {
+        return {
+          'success': false,
+          'error': 'Invalid response format',
+        };
+      }
+    } else if (response.statusCode == 401) {
+      return {
+        'success': false,
+        'error': 'Unauthorized access',
+      };
+    } else if (response.statusCode == 404) {
+      return {
+        'success': false,
+        'error': 'Resource not found',
+      };
+    } else {
+      return {
+        'success': false,
+        'error': 'Server error: ${response.statusCode}',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> addContact({
+    required String fullName,
+    required String phoneNumber,
+  }) async {
     try {
       final response = await _client.post(
-        Uri.parse('$baseUrl/login.php'),
+        Uri.parse('$baseUrl/add_contact_mob'),
+        headers: _headers,
+        body: json.encode({
+          'ufullname': fullName,
+          'uphonename': phoneNumber,
+        }),
+      ).timeout(timeout);
+
+      return _validateResponse(response);
+    } catch (e) {
+      return {
+        'success': false,
+        'error': _handleError(e),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateContact({
+    required int id,
+    required String fullName,
+    required String phoneNumber,
+  }) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl/update_contact'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
+        body: json.encode({
+          'cname': fullName,
+          'cnum': phoneNumber,
+          'cid': id,
         }),
       ).timeout(timeout);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          return {
-            'success': true,
-            'user': data['user'],
-          };
-        } else {
-          return {
-            'success': false,
-            'error': data['error'] ?? 'Invalid email or password',
-          };
-        }
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'message': 'Contact updated successfully',
+          'data': data,
+        };
       } else {
         return {
           'success': false,
-          'error': 'Server returned status code: ${response.statusCode}',
+          'error': 'Failed to update contact: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': _handleError(e),
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> deleteContact(int contactId) async {
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl/delete_contact'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'cid': contactId}),
+      ).timeout(timeout);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'message': 'Contact deleted successfully',
+          'data': data,
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'Failed to delete contact: ${response.statusCode}',
         };
       }
     } catch (e) {

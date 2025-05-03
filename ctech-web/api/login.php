@@ -4,81 +4,99 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Enable error reporting
+// Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'config.php';
+// Log file for debugging
+$logFile = __DIR__ . '/login_debug.log';
 
-// Log the request
-file_put_contents('login_debug.log', date('Y-m-d H:i:s') . " - Login attempt\n", FILE_APPEND);
+// Function to log messages
+function logMessage($message) {
+    global $logFile;
+    $timestamp = date('Y-m-d H:i:s');
+    file_put_contents($logFile, "[$timestamp] $message\n", FILE_APPEND);
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get raw input
+try {
+    // Get raw input data
     $rawInput = file_get_contents('php://input');
-    file_put_contents('login_debug.log', "Raw input: " . $rawInput . "\n", FILE_APPEND);
+    logMessage("Raw input: $rawInput");
     
+    // Parse JSON input
     $data = json_decode($rawInput, true);
     
-    if (!isset($data['email']) || !isset($data['password'])) {
-        file_put_contents('login_debug.log', "Missing email or password\n", FILE_APPEND);
-        echo json_encode([
-            'success' => false,
-            'error' => 'Email and password are required',
-            'received_data' => $data
-        ]);
-        exit;
+    if (!$data) {
+        throw new Exception('Invalid JSON input');
     }
-
+    
+    // Validate required fields
+    if (empty($data['email']) || empty($data['password'])) {
+        throw new Exception('Email and password are required');
+    }
+    
     $email = $data['email'];
     $password = $data['password'];
-
-    file_put_contents('login_debug.log', "Attempting login for email: $email\n", FILE_APPEND);
-
-    try {
-        // Check if users table exists
-        $tableExists = $pdo->query("SHOW TABLES LIKE 'users'")->rowCount() > 0;
-        if (!$tableExists) {
-            throw new Exception("Users table does not exist");
-        }
-
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
+    
+    // Database connection
+    $host = 'localhost';
+    $dbname = 'ctech';
+    $username = 'root';
+    $dbPassword = '';
+    
+    $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $dbPassword);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    // Check if users table exists
+    $tableCheck = $conn->query("SHOW TABLES LIKE 'users'");
+    if ($tableCheck->rowCount() == 0) {
+        throw new Exception('Users table does not exist. Please run create_tables.php first.');
+    }
+    
+    // Prepare and execute query
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
+    $stmt->bindParam(':email', $email);
+    $stmt->execute();
+    
+    if ($stmt->rowCount() > 0) {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        file_put_contents('login_debug.log', "User found: " . ($user ? 'yes' : 'no') . "\n", FILE_APPEND);
-
-        if ($user && password_verify($password, $user['password'])) {
-            // Remove sensitive data before sending
+        
+        // Verify password
+        if (password_verify($password, $user['password'])) {
+            // Remove sensitive data before sending response
             unset($user['password']);
             
-            file_put_contents('login_debug.log', "Login successful for email: $email\n", FILE_APPEND);
-            
+            logMessage("Login successful for email: $email");
             echo json_encode([
                 'success' => true,
                 'user' => $user
             ]);
         } else {
-            file_put_contents('login_debug.log', "Invalid credentials for email: $email\n", FILE_APPEND);
-            
+            logMessage("Invalid password for email: $email");
             echo json_encode([
                 'success' => false,
                 'error' => 'Invalid email or password'
             ]);
         }
-    } catch (Exception $e) {
-        file_put_contents('login_debug.log', "Error: " . $e->getMessage() . "\n", FILE_APPEND);
-        
+    } else {
+        logMessage("User not found for email: $email");
         echo json_encode([
             'success' => false,
-            'error' => 'Database error: ' . $e->getMessage()
+            'error' => 'Invalid email or password'
         ]);
     }
-} else {
-    file_put_contents('login_debug.log', "Invalid request method: " . $_SERVER['REQUEST_METHOD'] . "\n", FILE_APPEND);
     
+} catch (PDOException $e) {
+    logMessage("Database error: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'error' => 'Invalid request method'
+        'error' => 'Database error occurred'
     ]);
-} 
+} catch (Exception $e) {
+    logMessage("Error: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'error' => $e->getMessage()
+    ]);
+}
+?> 

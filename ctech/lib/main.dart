@@ -14,6 +14,7 @@ import 'screens/personal_info_screen.dart';
 import 'screens/forgot_password_screen.dart';
 import 'screens/verify_otp_screen.dart';
 import 'screens/reset_password_screen.dart';
+import 'screens/profile_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -76,6 +77,7 @@ class MyApp extends StatelessWidget {
           email: '',
           otp: '',
         ),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }

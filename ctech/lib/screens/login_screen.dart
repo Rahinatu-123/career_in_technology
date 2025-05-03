@@ -4,11 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'home_page.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import '../services/api_service.dart';
-
-const String baseUrl = 'http://10.0.2.2/ctech-web/api';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  final _apiService = ApiService();
 
   @override
   void dispose() {
@@ -36,35 +33,54 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() {
         _isLoading = true;
       });
+
       try {
-        final api = ApiService();
-        final response = await api.login(
+        final response = await _apiService.login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+
+        if (!mounted) return;
+
         if (response['success'] == true) {
           final user = response['user'];
           final prefs = await SharedPreferences.getInstance();
+          
+          // Save user data
           await prefs.setString('user_email', user['email']);
-          await prefs.setString('user_name', user['firstname'] + ' ' + user['lastname']);
+          await prefs.setString('user_name', '${user['firstname']} ${user['lastname']}');
           await prefs.setBool('is_logged_in', true);
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login successful!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          
+          // Add a small delay before navigation
+          await Future.delayed(const Duration(milliseconds: 500));
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Login successful!')),
-            );
             Navigator.pushReplacementNamed(context, '/home');
           }
         } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(response['error'] ?? 'Login failed.')),
-            );
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['error'] ?? 'Login failed.'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('An error occurred. Please try again.')),
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
           );
         }
       } finally {
