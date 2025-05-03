@@ -7,10 +7,11 @@ import '../models/tech_word.dart';
 import '../models/inspiring_story.dart';
 
 class ApiService {
-  // TODO: Change this to your actual API server URL when deploying
-  static const String baseUrl = 'http://localhost/ctech-web/api';
+  // Update base URL to match your web application
+  static const String baseUrl = 'http://10.0.2.2/ctech-web/api';
+  // For development/testing, you can use:
   // static const String baseUrl = 'http://localhost/ctech-web/api'; // iOS simulator
-  // static const String baseUrl = 'https://your-production-server.com/api'; // Production
+  // static const String baseUrl = 'http://your-domain.com/ctech-web/api'; // Production
 
   final http.Client _client;
   final Duration timeout = const Duration(seconds: 10);
@@ -20,11 +21,11 @@ class ApiService {
   // Helper method to handle common error cases
   String _handleError(dynamic error) {
     if (error is http.ClientException) {
-      return 'Failed to connect to server. Please check your internet connection.';
+      return 'Failed to connect to server. Please check your internet connection and make sure XAMPP is running.';
     } else if (error is TimeoutException) {
       return 'Connection timed out. Please try again.';
     } else if (error is SocketException) {
-      return 'Network error. Please check your internet connection.';
+      return 'Network error. Please check your internet connection and make sure XAMPP is running.';
     } else {
       return 'An unexpected error occurred. Please try again.';
     }
@@ -70,7 +71,11 @@ class ApiService {
   // Tech Words API
   Future<List<TechWord>> getTechWords() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/tech_words.php'));
+      final response = await _client.get(
+        Uri.parse('$baseUrl/tech_words.php'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeout);
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => TechWord.fromJson(json)).toList();
@@ -78,7 +83,7 @@ class ApiService {
         throw Exception('Failed to load tech words');
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      throw Exception(_handleError(e));
     }
   }
 
@@ -143,7 +148,7 @@ class ApiService {
     }
   }
 
-  // Inspiring Stories
+  // Inspiring Stories API
   Future<List<InspiringStory>> fetchInspiringStories() async {
     try {
       final response = await _client.get(
@@ -172,7 +177,7 @@ class ApiService {
     }
   }
 
-  // Authentication
+  // Authentication API
   Future<bool> verifyOTP(String email, String otp) async {
     try {
       final response = await _client.post(
@@ -208,51 +213,56 @@ class ApiService {
       if (search != null && search.isNotEmpty) {
         url += '?search=$search';
       }
-      final response = await http.get(Uri.parse(url));
+      final response = await _client.get(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeout);
+
       if (response.statusCode == 200) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        if (responseData['success'] == true) {
-          final List<dynamic> data = responseData['data'];
-          return data.map((json) => CareerProfile.fromJson(json)).toList();
-        } else {
-          throw Exception(responseData['error'] ?? 'Failed to load careers');
-        }
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => CareerProfile.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load careers');
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      throw Exception(_handleError(e));
     }
   }
 
   // Fetch Inspiring Stories
   Future<List<dynamic>> getInspiringStories() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/inspiring_stories.php'));
+      final response = await _client.get(
+        Uri.parse('$baseUrl/inspiring_stories.php'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeout);
+
       if (response.statusCode == 200) {
         return json.decode(response.body);
       } else {
         throw Exception('Failed to load stories');
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      throw Exception(_handleError(e));
     }
   }
 
   // Get Tech Words by Career
   Future<List<TechWord>> getTechWordsByCareer(int careerId) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/tech_words.php?career_id=$careerId')
-      );
+      final response = await _client.get(
+        Uri.parse('$baseUrl/tech_words.php?career_id=$careerId'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(timeout);
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         return data.map((json) => TechWord.fromJson(json)).toList();
       } else {
-        throw Exception('Failed to load tech words for career');
+        throw Exception('Failed to load tech words');
       }
     } catch (e) {
-      throw Exception('Error: $e');
+      throw Exception(_handleError(e));
     }
   }
 
@@ -281,14 +291,40 @@ class ApiService {
     required String email,
     required String password,
   }) async {
-    final response = await _client.post(
-      Uri.parse('$baseUrl/login.php'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'email': email,
-        'password': password,
-      }),
-    );
-    return json.decode(response.body);
+    try {
+      final response = await _client.post(
+        Uri.parse('$baseUrl/login.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      ).timeout(timeout);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return {
+            'success': true,
+            'user': data['user'],
+          };
+        } else {
+          return {
+            'success': false,
+            'error': data['error'] ?? 'Invalid email or password',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'error': 'Server returned status code: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'error': _handleError(e),
+      };
+    }
   }
 } 

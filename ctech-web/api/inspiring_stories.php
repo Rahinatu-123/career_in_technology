@@ -1,149 +1,99 @@
 <?php
-require_once '../db/config.php';
-require_once 'functions.php';
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+header('Access-Control-Allow-Headers: Content-Type');
 
-try {
-    // Get all inspiring stories
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $conn = getDBConnection();
-        
-        $sql = "SELECT * FROM inspiring_stories";
-        $result = $conn->query($sql);
-        
-        $stories = [];
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                // Get related careers
-                $stmt = $conn->prepare("SELECT career_id FROM story_careers WHERE story_id = ?");
-                $stmt->bind_param("i", $row['id']);
-                $stmt->execute();
-                $careerResult = $stmt->get_result();
-                
-                $relatedCareers = [];
-                while($career = $careerResult->fetch_assoc()) {
-                    $relatedCareers[] = $career['career_id'];
-                }
-                
-                $row['related_careers'] = $relatedCareers;
-                $stories[] = $row;
-            }
+require_once 'config.php';
+
+switch ($_SERVER['REQUEST_METHOD']) {
+    case 'GET':
+        try {
+            $stmt = $pdo->query("SELECT * FROM inspiring_stories");
+            $stories = $stmt->fetchAll();
+            echo json_encode($stories);
+        } catch (PDOException $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Database error: ' . $e->getMessage()
+            ]);
         }
-        
-        sendResponse($stories);
-    }
+        break;
 
-    // Add a new inspiring story
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (!isset($data['name']) || !isset($data['role']) || !isset($data['company']) || 
-            !isset($data['short_quote']) || !isset($data['full_story'])) {
-            sendResponse(['error' => 'Missing required fields'], 400);
+        try {
+            $stmt = $pdo->prepare("INSERT INTO inspiring_stories (name, role, company, image_path, short_quote, full_story, audio_path, related_careers) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $data['name'],
+                $data['role'],
+                $data['company'],
+                $data['image_path'],
+                $data['short_quote'],
+                $data['full_story'],
+                $data['audio_path'],
+                json_encode($data['related_careers'])
+            ]);
+            echo json_encode([
+                'success' => true,
+                'id' => $pdo->lastInsertId()
+            ]);
+        } catch (PDOException $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Database error: ' . $e->getMessage()
+            ]);
         }
-        
-        $conn = getDBConnection();
-        
-        $stmt = $conn->prepare("INSERT INTO inspiring_stories (name, role, company, image_path, short_quote, full_story, audio_path) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssssss", 
-            $data['name'],
-            $data['role'],
-            $data['company'],
-            $data['image_path'],
-            $data['short_quote'],
-            $data['full_story'],
-            $data['audio_path']
-        );
-        
-        if ($stmt->execute()) {
-            $storyId = $stmt->insert_id;
-            
-            // Insert related careers
-            if (isset($data['related_careers']) && is_array($data['related_careers'])) {
-                $careerStmt = $conn->prepare("INSERT INTO story_careers (story_id, career_id) VALUES (?, ?)");
-                foreach ($data['related_careers'] as $careerId) {
-                    $careerStmt->bind_param("ii", $storyId, $careerId);
-                    $careerStmt->execute();
-                }
-            }
-            
-            sendResponse(['message' => 'Story created successfully', 'id' => $storyId]);
-        } else {
-            sendResponse(['error' => 'Failed to create story'], 500);
-        }
-    }
+        break;
 
-    // Update an inspiring story
-    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    case 'PUT':
         $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (!isset($data['id'])) {
-            sendResponse(['error' => 'Missing story ID'], 400);
+        try {
+            $stmt = $pdo->prepare("UPDATE inspiring_stories SET name = ?, role = ?, company = ?, image_path = ?, short_quote = ?, full_story = ?, audio_path = ?, related_careers = ? WHERE id = ?");
+            $stmt->execute([
+                $data['name'],
+                $data['role'],
+                $data['company'],
+                $data['image_path'],
+                $data['short_quote'],
+                $data['full_story'],
+                $data['audio_path'],
+                json_encode($data['related_careers']),
+                $data['id']
+            ]);
+            echo json_encode(['success' => true]);
+        } catch (PDOException $e) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Database error: ' . $e->getMessage()
+            ]);
         }
-        
-        $conn = getDBConnection();
-        
-        $stmt = $conn->prepare("UPDATE inspiring_stories SET name=?, role=?, company=?, image_path=?, short_quote=?, full_story=?, audio_path=? WHERE id=?");
-        $stmt->bind_param("sssssssi", 
-            $data['name'],
-            $data['role'],
-            $data['company'],
-            $data['image_path'],
-            $data['short_quote'],
-            $data['full_story'],
-            $data['audio_path'],
-            $data['id']
-        );
-        
-        if ($stmt->execute()) {
-            // Update related careers
-            if (isset($data['related_careers']) && is_array($data['related_careers'])) {
-                // Delete existing relationships
-                $deleteStmt = $conn->prepare("DELETE FROM story_careers WHERE story_id = ?");
-                $deleteStmt->bind_param("i", $data['id']);
-                $deleteStmt->execute();
-                
-                // Insert new relationships
-                $careerStmt = $conn->prepare("INSERT INTO story_careers (story_id, career_id) VALUES (?, ?)");
-                foreach ($data['related_careers'] as $careerId) {
-                    $careerStmt->bind_param("ii", $data['id'], $careerId);
-                    $careerStmt->execute();
-                }
+        break;
+
+    case 'DELETE':
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM inspiring_stories WHERE id = ?");
+                $stmt->execute([$id]);
+                echo json_encode(['success' => true]);
+            } catch (PDOException $e) {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Database error: ' . $e->getMessage()
+                ]);
             }
-            
-            sendResponse(['message' => 'Story updated successfully']);
         } else {
-            sendResponse(['error' => 'Failed to update story'], 500);
+            echo json_encode([
+                'success' => false,
+                'error' => 'ID is required'
+            ]);
         }
-    }
+        break;
 
-    // Delete an inspiring story
-    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        if (!isset($_GET['id'])) {
-            sendResponse(['error' => 'Missing story ID'], 400);
-        }
-        
-        $conn = getDBConnection();
-        
-        // Delete related careers first
-        $deleteStmt = $conn->prepare("DELETE FROM story_careers WHERE story_id = ?");
-        $deleteStmt->bind_param("i", $_GET['id']);
-        $deleteStmt->execute();
-        
-        // Delete the story
-        $stmt = $conn->prepare("DELETE FROM inspiring_stories WHERE id=?");
-        $stmt->bind_param("i", $_GET['id']);
-        
-        if ($stmt->execute()) {
-            sendResponse(['message' => 'Story deleted successfully']);
-        } else {
-            sendResponse(['error' => 'Failed to delete story'], 500);
-        }
-    }
-
-} catch (Exception $e) {
-    sendResponse([
-        'success' => false,
-        'error' => $e->getMessage()
-    ], 500);
-}
-?> 
+    default:
+        echo json_encode([
+            'success' => false,
+            'error' => 'Invalid request method'
+        ]);
+} 

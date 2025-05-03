@@ -82,7 +82,7 @@ class MyApp extends StatelessWidget {
 }
 
 // API endpoints for authentication
-const String baseUrl = 'http://localhost/ctech-web/api';
+const String baseUrl = 'http://10.0.2.2/ctech-web/api';
 
 Future<bool> verifyOTP(String email, String otp) async {
   final response = await http.post(

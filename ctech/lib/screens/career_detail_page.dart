@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
+import 'package:chewie/chewie.dart';
+import 'package:just_audio/just_audio.dart';
 import '../models/career_profile.dart';
+import '../services/api_service.dart';
 
-class CareerDetailPage extends StatelessWidget {
+class CareerDetailPage extends StatefulWidget {
   final CareerProfile career;
 
   const CareerDetailPage({
@@ -10,20 +14,75 @@ class CareerDetailPage extends StatelessWidget {
   });
 
   @override
+  State<CareerDetailPage> createState() => _CareerDetailPageState();
+}
+
+class _CareerDetailPageState extends State<CareerDetailPage> {
+  VideoPlayerController? _videoController;
+  ChewieController? _chewieController;
+  AudioPlayer? _audioPlayer;
+  bool _isVideoInitialized = false;
+  bool _isAudioInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeMedia();
+  }
+
+  Future<void> _initializeMedia() async {
+    if (widget.career.videoPath != null) {
+      _videoController = VideoPlayerController.network(widget.career.videoPath!);
+      await _videoController!.initialize();
+      _chewieController = ChewieController(
+        videoPlayerController: _videoController!,
+        autoPlay: false,
+        looping: false,
+        aspectRatio: _videoController!.value.aspectRatio,
+      );
+      setState(() {
+        _isVideoInitialized = true;
+      });
+    }
+
+    if (widget.career.audioPath != null) {
+      _audioPlayer = AudioPlayer();
+      try {
+        await _audioPlayer!.setUrl(widget.career.audioPath!);
+        setState(() {
+          _isAudioInitialized = true;
+        });
+      } catch (e) {
+        debugPrint('Error initializing audio: $e');
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    _chewieController?.dispose();
+    _audioPlayer?.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF0A2A36),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          career.title,
-          style: const TextStyle(
-            color: Colors.white,
+          widget.career.title,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: const Color(0xFF0A2A36),
+        backgroundColor: theme.primaryColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.colorScheme.onPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -34,162 +93,181 @@ class CareerDetailPage extends StatelessWidget {
               width: double.infinity,
               height: 200,
               decoration: BoxDecoration(
-                color: const Color(0xFF153B4D),
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(12),
-                image: career.imagePath.isNotEmpty
+                image: widget.career.imagePath.isNotEmpty
                     ? DecorationImage(
-                        image: NetworkImage(career.imagePath),
+                        image: NetworkImage(widget.career.imagePath),
                         fit: BoxFit.cover,
                       )
                     : null,
               ),
-              child: career.imagePath.isEmpty
-                  ? const Icon(
+              child: widget.career.imagePath.isEmpty
+                  ? Icon(
                       Icons.work,
                       size: 80,
-                      color: Colors.white24,
+                      color: theme.colorScheme.onSurface.withOpacity(0.24),
                     )
                   : null,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Description',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              career.description,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
+              widget.career.description,
+              style: theme.textTheme.bodyLarge,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Required Skills',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            ...career.skills.split(', ').map((skill) => Padding(
+            ...widget.career.skillsList.map((skill) => Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: Colors.white10,
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.check_circle,
                       size: 16,
-                      color: Colors.white,
+                      color: theme.colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       skill,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
+                      style: theme.textTheme.bodyLarge,
                     ),
                   ),
                 ],
               ),
             )),
             const SizedBox(height: 24),
-            const Text(
-              'Real-life Applications',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
+            Text(
+              'Education Requirements',
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            ...career.applications.map((application) => Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white10,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      application,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
+            Text(
+              widget.career.education,
+              style: theme.textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Salary Range',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-            )),
-            if (career.videoPath != null || career.audioPath != null) ...[
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.career.formattedSalaryRange,
+              style: theme.textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Job Outlook',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.career.formattedJobOutlook,
+              style: theme.textTheme.bodyLarge,
+            ),
+            if (widget.career.hasMedia) ...[
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Learn More',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
+                style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
-              if (career.videoPath != null)
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement video playback
-                  },
-                  icon: const Icon(Icons.play_circle),
-                  label: const Text('Watch Video'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white10,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              if (career.audioPath != null) ...[
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Implement audio playback
-                  },
-                  icon: const Icon(Icons.headphones),
-                  label: const Text('Listen to Expert'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white10,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
+              if (widget.career.videoPath != null)
+                _isVideoInitialized
+                    ? AspectRatio(
+                        aspectRatio: _videoController!.value.aspectRatio,
+                        child: Chewie(controller: _chewieController!),
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+              if (widget.career.audioPath != null) ...[
+                const SizedBox(height: 16),
+                _isAudioInitialized
+                    ? StreamBuilder<PlayerState>(
+                        stream: _audioPlayer!.playerStateStream,
+                        builder: (context, snapshot) {
+                          final playerState = snapshot.data;
+                          final processingState = playerState?.processingState;
+                          final playing = playerState?.playing;
+                          
+                          return Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  playing == true
+                                      ? Icons.pause_circle
+                                      : Icons.play_circle,
+                                  size: 48,
+                                ),
+                                onPressed: () {
+                                  if (playing == true) {
+                                    _audioPlayer!.pause();
+                                  } else {
+                                    _audioPlayer!.play();
+                                  }
+                                },
+                              ),
+                              Expanded(
+                                child: StreamBuilder<Duration>(
+                                  stream: _audioPlayer!.positionStream,
+                                  builder: (context, snapshot) {
+                                    final position = snapshot.data ?? Duration.zero;
+                                    return StreamBuilder<Duration?>(
+                                      stream: _audioPlayer!.durationStream,
+                                      builder: (context, snapshot) {
+                                        final duration = snapshot.data ?? Duration.zero;
+                                        return Slider(
+                                          value: position.inMilliseconds.toDouble(),
+                                          min: 0.0,
+                                          max: duration.inMilliseconds.toDouble(),
+                                          onChanged: (value) {
+                                            _audioPlayer!.seek(
+                                              Duration(milliseconds: value.toInt()),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      ),
               ],
             ],
           ],

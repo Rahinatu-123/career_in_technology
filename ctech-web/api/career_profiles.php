@@ -1,154 +1,163 @@
 <?php
-require_once '../db/config.php';
-require_once 'functions.php';
+header('Content-Type: application/json');
+require_once '../config.php';
 
-try {
-    // Get all career profiles or search
-    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        $conn = getDBConnection();
-        
-        // Build the query based on search parameters
-        $where_conditions = [];
-        $params = [];
-        $types = "";
-        
-        if (isset($_GET['search'])) {
-            $search = "%{$_GET['search']}%";
-            $where_conditions[] = "(title LIKE ? OR description LIKE ? OR skills LIKE ?)";
-            $params[] = $search;
-            $params[] = $search;
-            $params[] = $search;
-            $types .= "sss";
-        }
-        
-        if (isset($_GET['min_salary'])) {
-            $where_conditions[] = "CAST(SUBSTRING_INDEX(salary_range, '-', 1) AS DECIMAL) >= ?";
-            $params[] = $_GET['min_salary'];
-            $types .= "d";
-        }
-        
-        if (isset($_GET['education_level'])) {
-            $where_conditions[] = "education LIKE ?";
-            $params[] = "%{$_GET['education_level']}%";
-            $types .= "s";
-        }
-        
-        $sql = "SELECT * FROM career_profiles";
-        if (!empty($where_conditions)) {
-            $sql .= " WHERE " . implode(" AND ", $where_conditions);
-        }
-        
-        if (!empty($params)) {
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param($types, ...$params);
-            $stmt->execute();
-            $result = $stmt->get_result();
-        } else {
-            $result = $conn->query($sql);
-        }
-        
-        $profiles = [];
-        if ($result->num_rows > 0) {
-            while($row = $result->fetch_assoc()) {
-                // Get related tech words
-                $stmt = $conn->prepare("
-                    SELECT tw.* FROM tech_words tw
-                    INNER JOIN word_careers wc ON tw.id = wc.word_id
-                    WHERE wc.career_id = ?
-                ");
-                $stmt->bind_param("i", $row['id']);
-                $stmt->execute();
-                $wordResult = $stmt->get_result();
-                
-                $relatedWords = [];
-                while($word = $wordResult->fetch_assoc()) {
-                    $relatedWords[] = $word;
-                }
-                
-                $row['related_tech_words'] = $relatedWords;
-                $profiles[] = $row;
-            }
-        }
-        
-        sendResponse($profiles);
-    }
+// Handle CORS
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
+header('Access-Control-Allow-Headers: Content-Type');
 
-    // Add a new career profile
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (!isset($data['title']) || !isset($data['description'])) {
-            sendResponse(['error' => 'Missing required fields'], 400);
-        }
-        
-        $conn = getDBConnection();
-        
-        $stmt = $conn->prepare("INSERT INTO career_profiles (title, description, skills, education, salary_range, job_outlook) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", 
-            $data['title'],
-            $data['description'],
-            $data['skills'],
-            $data['education'],
-            $data['salary_range'],
-            $data['job_outlook']
-        );
-        
-        if ($stmt->execute()) {
-            sendResponse(['message' => 'Career profile created successfully', 'id' => $stmt->insert_id]);
-        } else {
-            sendResponse(['error' => 'Failed to create career profile'], 500);
-        }
+// Get all career profiles
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $search = $_GET['search'] ?? '';
+    $minSalary = $_GET['min_salary'] ?? null;
+    $educationLevel = $_GET['education_level'] ?? null;
+    
+    $query = "SELECT * FROM career_profiles WHERE 1=1";
+    $params = [];
+    $types = "";
+    
+    if ($search) {
+        $query .= " AND (title LIKE ? OR description LIKE ?)";
+        $searchTerm = "%$search%";
+        $params[] = $searchTerm;
+        $params[] = $searchTerm;
+        $types .= "ss";
     }
-
-    // Update a career profile
-    if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-        $data = json_decode(file_get_contents('php://input'), true);
-        
-        if (!isset($data['id'])) {
-            sendResponse(['error' => 'Missing profile ID'], 400);
-        }
-        
-        $conn = getDBConnection();
-        
-        $stmt = $conn->prepare("UPDATE career_profiles SET title=?, description=?, skills=?, education=?, salary_range=?, job_outlook=? WHERE id=?");
-        $stmt->bind_param("ssssssi", 
-            $data['title'],
-            $data['description'],
-            $data['skills'],
-            $data['education'],
-            $data['salary_range'],
-            $data['job_outlook'],
-            $data['id']
-        );
-        
-        if ($stmt->execute()) {
-            sendResponse(['message' => 'Career profile updated successfully']);
-        } else {
-            sendResponse(['error' => 'Failed to update career profile'], 500);
-        }
+    
+    if ($minSalary) {
+        $query .= " AND salary_range >= ?";
+        $params[] = $minSalary;
+        $types .= "d";
     }
-
-    // Delete a career profile
-    if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-        if (!isset($_GET['id'])) {
-            sendResponse(['error' => 'Missing profile ID'], 400);
-        }
-        
-        $conn = getDBConnection();
-        
-        $stmt = $conn->prepare("DELETE FROM career_profiles WHERE id=?");
-        $stmt->bind_param("i", $_GET['id']);
-        
-        if ($stmt->execute()) {
-            sendResponse(['message' => 'Career profile deleted successfully']);
-        } else {
-            sendResponse(['error' => 'Failed to delete career profile'], 500);
-        }
+    
+    if ($educationLevel) {
+        $query .= " AND education = ?";
+        $params[] = $educationLevel;
+        $types .= "s";
     }
-} catch (Exception $e) {
-    sendResponse([
-        'success' => false,
-        'error' => $e->getMessage()
-    ], 500);
+    
+    $query .= " ORDER BY created_at DESC";
+    
+    $stmt = $conn->prepare($query);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $careers = [];
+    while ($row = $result->fetch_assoc()) {
+        $careers[] = [
+            'id' => $row['id'],
+            'title' => $row['title'],
+            'description' => $row['description'],
+            'skills' => $row['skills'],
+            'education' => $row['education'],
+            'salary_range' => $row['salary_range'],
+            'job_outlook' => $row['job_outlook'],
+            'created_at' => $row['created_at'],
+            'updated_at' => $row['updated_at'],
+            'image_path' => $row['image_path'],
+            'video_path' => $row['video_path'],
+            'audio_path' => $row['audio_path']
+        ];
+    }
+    
+    echo json_encode($careers);
+    exit;
 }
-?> 
+
+// Add new career profile
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    $requiredFields = ['title', 'description', 'skills', 'education', 'salary_range', 'job_outlook'];
+    foreach ($requiredFields as $field) {
+        if (!isset($data[$field])) {
+            http_response_code(400);
+            echo json_encode(['error' => "Missing required field: $field"]);
+            exit;
+        }
+    }
+    
+    $stmt = $conn->prepare("INSERT INTO career_profiles (title, description, skills, education, salary_range, job_outlook, image_path, video_path, audio_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssdssss", 
+        $data['title'],
+        $data['description'],
+        $data['skills'],
+        $data['education'],
+        $data['salary_range'],
+        $data['job_outlook'],
+        $data['image_path'] ?? '',
+        $data['video_path'] ?? '',
+        $data['audio_path'] ?? ''
+    );
+    
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true, 'id' => $stmt->insert_id]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to add career profile']);
+    }
+    exit;
+}
+
+// Update career profile
+if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    
+    if (!isset($data['id'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Missing career profile ID']);
+        exit;
+    }
+    
+    $stmt = $conn->prepare("UPDATE career_profiles SET title = ?, description = ?, skills = ?, education = ?, salary_range = ?, job_outlook = ?, image_path = ?, video_path = ?, audio_path = ? WHERE id = ?");
+    $stmt->bind_param("ssssdssssi", 
+        $data['title'],
+        $data['description'],
+        $data['skills'],
+        $data['education'],
+        $data['salary_range'],
+        $data['job_outlook'],
+        $data['image_path'] ?? '',
+        $data['video_path'] ?? '',
+        $data['audio_path'] ?? '',
+        $data['id']
+    );
+    
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to update career profile']);
+    }
+    exit;
+}
+
+// Delete career profile
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $id = $_GET['id'] ?? null;
+    
+    if (!$id) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Missing career profile ID']);
+        exit;
+    }
+    
+    $stmt = $conn->prepare("DELETE FROM career_profiles WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true]);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to delete career profile']);
+    }
+    exit;
+}
+
+http_response_code(405);
+echo json_encode(['error' => 'Method not allowed']); 

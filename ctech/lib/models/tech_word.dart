@@ -3,7 +3,6 @@ class TechWord {
   final String word;
   final String definition;
   final String? category;
-  final List<int> relatedCareers;
   final String createdAt;
 
   TechWord({
@@ -11,18 +10,16 @@ class TechWord {
     required this.word,
     required this.definition,
     this.category,
-    required this.relatedCareers,
     required this.createdAt,
   });
 
   factory TechWord.fromJson(Map<String, dynamic> json) {
     return TechWord(
-      id: json['id'],
-      word: json['word'],
-      definition: json['definition'],
-      category: json['category'],
-      relatedCareers: List<int>.from(json['related_careers'] ?? []),
-      createdAt: json['created_at'],
+      id: json['id'] as int,
+      word: json['word'] as String,
+      definition: json['definition'] as String,
+      category: json['category']?.toString(),
+      createdAt: json['created_at']?.toString() ?? DateTime.now().toIso8601String(),
     );
   }
 
@@ -32,7 +29,6 @@ class TechWord {
       'word': word,
       'definition': definition,
       'category': category,
-      'related_careers': relatedCareers,
       'created_at': createdAt,
     };
   }

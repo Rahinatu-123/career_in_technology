@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/feature_card.dart';
-import '../data/career_profiles_data.dart';
 import '../models/career_profile.dart';
+import '../services/api_service.dart';
 import 'career_detail_page.dart';
 import 'settings_page.dart';
 import 'login_screen.dart';
@@ -19,16 +19,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
+  final ApiService _apiService = ApiService();
   String _searchQuery = '';
   static const darkBlue = Color(0xFF0A2A36);
   int _selectedIndex = 0;
   List<CareerProfile> _filteredProfiles = [];
+  bool _isLoading = true;
+  String _error = '';
 
   @override
   void initState() {
     super.initState();
     _checkAuth();
-    _filteredProfiles = CareerProfilesData.profiles;
+    _loadCareers();
   }
 
   Future<void> _checkAuth() async {
@@ -40,9 +43,29 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _loadCareers() async {
+    try {
+      final careers = await _apiService.getCareers();
+      if (mounted) {
+        setState(() {
+          _filteredProfiles = careers;
+          _isLoading = false;
+          _error = '';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   void _filterProfiles(String query) {
     setState(() {
-      _filteredProfiles = CareerProfilesData.profiles.where((profile) {
+      _filteredProfiles = _filteredProfiles.where((profile) {
         return profile.title.toLowerCase().contains(query.toLowerCase()) ||
                profile.description.toLowerCase().contains(query.toLowerCase());
       }).toList();

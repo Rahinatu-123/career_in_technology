@@ -10,8 +10,6 @@ class CareerProfile {
   final String jobOutlook;
   final String createdAt;
   final String updatedAt;
-  final List<TechWord> relatedTechWords;
-  final List<String> applications;
   final String imagePath;
   final String? videoPath;
   final String? audioPath;
@@ -26,31 +24,33 @@ class CareerProfile {
     required this.jobOutlook,
     required this.createdAt,
     required this.updatedAt,
-    this.relatedTechWords = const [],
-    this.applications = const [],
     required this.imagePath,
     this.videoPath,
     this.audioPath,
   });
 
   factory CareerProfile.fromJson(Map<String, dynamic> json) {
+    // Validate required fields
+    final requiredFields = ['id', 'title', 'description', 'skills', 'education', 'salary_range', 'job_outlook'];
+    for (final field in requiredFields) {
+      if (json[field] == null) {
+        throw FormatException('Missing required field: $field');
+      }
+    }
+
     return CareerProfile(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      skills: json['skills'],
-      education: json['education'],
-      salaryRange: json['salary_range'],
-      jobOutlook: json['job_outlook'],
-      createdAt: json['created_at']?.toString() ?? '',
-      updatedAt: json['updated_at']?.toString() ?? '',
-      relatedTechWords: (json['related_tech_words'] as List?)
-          ?.map((word) => TechWord.fromJson(word))
-          .toList() ?? [],
-      applications: (json['applications'] as List?)?.cast<String>() ?? [],
-      imagePath: json['image_path'] ?? '',
-      videoPath: json['video_path'],
-      audioPath: json['audio_path'],
+      id: json['id'] as int,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      skills: json['skills'] as String,
+      education: json['education'] as String,
+      salaryRange: json['salary_range'] as String,
+      jobOutlook: json['job_outlook'] as String,
+      createdAt: json['created_at']?.toString() ?? DateTime.now().toIso8601String(),
+      updatedAt: json['updated_at']?.toString() ?? DateTime.now().toIso8601String(),
+      imagePath: json['image_path']?.toString() ?? '',
+      videoPath: json['video_path']?.toString(),
+      audioPath: json['audio_path']?.toString(),
     );
   }
 
@@ -65,11 +65,27 @@ class CareerProfile {
       'job_outlook': jobOutlook,
       'created_at': createdAt,
       'updated_at': updatedAt,
-      'applications': applications,
       'image_path': imagePath,
       'video_path': videoPath,
       'audio_path': audioPath,
-      'related_tech_words': relatedTechWords.map((word) => word.toJson()).toList(),
     };
+  }
+
+  // Helper method to get formatted skills list
+  List<String> get skillsList => skills.split(',').map((s) => s.trim()).toList();
+
+  // Helper method to check if career has media content
+  bool get hasMedia => videoPath != null || audioPath != null;
+
+  // Helper method to get formatted salary range
+  String get formattedSalaryRange {
+    if (salaryRange.isEmpty) return 'Not specified';
+    return salaryRange;
+  }
+
+  // Helper method to get formatted job outlook
+  String get formattedJobOutlook {
+    if (jobOutlook.isEmpty) return 'Not specified';
+    return jobOutlook;
   }
 } 
