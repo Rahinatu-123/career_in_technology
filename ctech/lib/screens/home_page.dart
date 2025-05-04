@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/feature_card.dart';
 import '../models/career_profile.dart';
 import '../services/api_service.dart';
 import 'career_detail_page.dart';
 import 'settings_page.dart';
-import 'login_screen.dart';
-import 'career_profiles_page.dart';
-import 'career_quiz_page.dart';
-import 'inspiring_stories_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -96,7 +91,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _navigateToProfile() {
-    // Will be implemented when profile page is ready
     Navigator.pushNamed(context, '/profile');
   }
 
@@ -333,34 +327,6 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: _onItemTapped,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.work_outline),
-            selectedIcon: Icon(Icons.work),
-            label: 'Careers',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Stories',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
           ),
         ],
       ),

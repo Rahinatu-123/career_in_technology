@@ -25,12 +25,12 @@ class CareerRepository {
     return _apiService.createCareer(career);
   }
 
-  Future<void> updateCareer(CareerProfile career) async {
-    await _apiService.updateCareer(career);
+  Future<CareerProfile> updateCareer(CareerProfile career) async {
+    return _apiService.updateCareer(career);
   }
 
-  Future<void> deleteCareer(int id) async {
-    await _apiService.deleteCareer(id);
+  Future<bool> deleteCareer(int id) async {
+    return _apiService.deleteCareer(id);
   }
 
   // Tech Words
@@ -46,11 +46,11 @@ class CareerRepository {
     return _apiService.createTechWord(word);
   }
 
-  Future<void> updateTechWord(TechWord word) async {
-    await _apiService.updateTechWord(word);
+  Future<TechWord> updateTechWord(TechWord word) async {
+    return _apiService.updateTechWord(word);
   }
 
-  Future<void> deleteTechWord(int id) async {
-    await _apiService.deleteTechWord(id);
+  Future<bool> deleteTechWord(int id) async {
+    return _apiService.deleteTechWord(id);
   }
 } 

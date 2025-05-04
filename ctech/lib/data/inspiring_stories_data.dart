@@ -3,7 +3,7 @@ import '../models/inspiring_story.dart';
 class InspiringStoriesData {
   static final List<InspiringStory> stories = [
     InspiringStory(
-      id: '1',
+      id: 1,
       name: 'Ama Ofori',
       role: 'Senior Software Engineer',
       company: 'Google',
@@ -25,9 +25,10 @@ Embrace your unique perspective and use it to create solutions that make a diffe
 ''',
       audioPath: 'assets/audio/ama_ofori.mp3',
       relatedCareers: ['1', '3'], // Software Developer, UI/UX Designer
+      createdAt: '2024-01-01T00:00:00Z',
     ),
     InspiringStory(
-      id: '2',
+      id: 2,
       name: 'Kwame Mensah',
       role: 'Data Science Lead',
       company: 'MTN Ghana',
@@ -50,9 +51,10 @@ programming. The field is constantly evolving, so continuous learning is key to 
 ''',
       audioPath: 'assets/audio/kwame_mensah.mp3',
       relatedCareers: ['2'], // Data Scientist
+      createdAt: '2024-01-02T00:00:00Z',
     ),
     InspiringStory(
-      id: '3',
+      id: 3,
       name: 'Esi Bonsu',
       role: 'Network Security Specialist',
       company: 'Ghana National Security',
@@ -76,6 +78,7 @@ foundation.
 ''',
       audioPath: 'assets/audio/esi_bonsu.mp3',
       relatedCareers: ['4'], // Network Engineer
+      createdAt: '2024-01-03T00:00:00Z',
     ),
   ];
 } 

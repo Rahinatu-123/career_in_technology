@@ -27,15 +27,19 @@ class _CareerDetailsScreenState extends State<CareerDetailsScreen> {
   }
 
   Future<void> _loadTechWords() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final words = await _repository.getTechWords(careerId: widget.career.id);
+      if (!mounted) return;
       setState(() {
         _techWords = words;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error loading tech words: $e')),
       );

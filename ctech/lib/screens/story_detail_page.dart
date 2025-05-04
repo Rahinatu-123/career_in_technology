@@ -78,14 +78,14 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       shape: BoxShape.circle,
-                      image: widget.story.imagePath.isNotEmpty
+                      image: widget.story.imagePath != null
                           ? DecorationImage(
-                              image: NetworkImage(widget.story.imagePath),
+                              image: NetworkImage(widget.story.imagePath!),
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: widget.story.imagePath.isEmpty
+                    child: widget.story.imagePath == null
                         ? Icon(
                             Icons.person,
                             size: 50,

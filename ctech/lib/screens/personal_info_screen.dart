@@ -43,29 +43,40 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           lastname: _lastNameController.text.trim(),
           email: widget.email.trim(),
           password: widget.password,
+          phone: _phoneController.text.trim(),
         );
+
+        if (!mounted) return;
+
         if (response['success'] == true) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Signup successful! Please login.')),
-            );
-            Navigator.pushReplacementNamed(context, '/login');
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Signup successful! Please login.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/login');
         } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(response['error'] ?? 'Signup failed.')),
-            );
-          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['error'] ?? 'Signup failed. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Signup failed: $e')),
+            SnackBar(
+              content: Text('An error occurred: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
     }
   }

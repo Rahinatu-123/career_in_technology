@@ -1,5 +1,3 @@
-import 'tech_word.dart';
-
 class CareerProfile {
   final int id;
   final String title;

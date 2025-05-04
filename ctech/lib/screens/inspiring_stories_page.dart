@@ -173,14 +173,14 @@ class StoryCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(30),
-                      image: story.imagePath.isNotEmpty
+                      image: story.imagePath != null
                           ? DecorationImage(
-                              image: NetworkImage(story.imagePath),
+                              image: NetworkImage(story.imagePath!),
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: story.imagePath.isEmpty
+                    child: story.imagePath == null
                         ? const Icon(
                             Icons.person,
                             size: 30,

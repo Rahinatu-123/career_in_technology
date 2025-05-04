@@ -3,7 +3,6 @@ import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/career_profile.dart';
-import '../services/api_service.dart';
 
 class CareerDetailPage extends StatefulWidget {
   final CareerProfile career;
@@ -32,7 +31,7 @@ class _CareerDetailPageState extends State<CareerDetailPage> {
 
   Future<void> _initializeMedia() async {
     if (widget.career.videoPath != null) {
-      _videoController = VideoPlayerController.network(widget.career.videoPath!);
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.career.videoPath!));
       await _videoController!.initialize();
       _chewieController = ChewieController(
         videoPlayerController: _videoController!,
@@ -106,7 +105,7 @@ class _CareerDetailPageState extends State<CareerDetailPage> {
                   ? Icon(
                       Icons.work,
                       size: 80,
-                      color: theme.colorScheme.onSurface.withOpacity(0.24),
+                      color: theme.colorScheme.onSurface.withAlpha(61),
                     )
                   : null,
             ),
@@ -217,7 +216,6 @@ class _CareerDetailPageState extends State<CareerDetailPage> {
                         stream: _audioPlayer!.playerStateStream,
                         builder: (context, snapshot) {
                           final playerState = snapshot.data;
-                          final processingState = playerState?.processingState;
                           final playing = playerState?.playing;
                           
                           return Row(
