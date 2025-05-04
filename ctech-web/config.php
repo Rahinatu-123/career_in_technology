@@ -4,6 +4,7 @@ $db   = 'career_tech_db';  // Your local database name
 $user = 'root';          // XAMPP default username
 $password = '';          // XAMPP default password (empty)
 
+ 
 // Create connection
 $conn = new mysqli($host, $user, $password, $db);
 

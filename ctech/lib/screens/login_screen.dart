@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_page.dart';
+import 'home_page.dart'; // Make sure your HomePage accepts a 'user' parameter
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
 import '../services/api_service.dart';
@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   final _apiService = ApiService();
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -32,9 +33,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
+        _errorMessage = null;
       });
 
       try {
+        debugPrint('Attempting login with email: ${_emailController.text.trim()}');
+        
         final response = await _apiService.login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -44,12 +48,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (response['success'] == true) {
           final user = response['user'];
-          final prefs = await SharedPreferences.getInstance();
+          debugPrint('Login successful for: ${user['email']}');
           
           // Save user data
+          final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_email', user['email']);
           await prefs.setString('user_name', '${user['firstname']} ${user['lastname']}');
           await prefs.setBool('is_logged_in', true);
+          
+          // Optional: Store user ID or token if your API provides it
+          if (user['id'] != null) {
+            await prefs.setString('user_id', user['id'].toString());
+          }
           
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -62,22 +72,34 @@ class _LoginScreenState extends State<LoginScreen> {
           // Add a small delay before navigation
           await Future.delayed(const Duration(milliseconds: 500));
           if (mounted) {
-            Navigator.pushReplacementNamed(context, '/home');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(user: user), // Passing user data
+              ),
+            );
           }
         } else {
+          setState(() {
+            _errorMessage = response['error'] ?? 'Login failed. Please try again.';
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(response['error'] ?? 'Login failed.'),
+              content: Text(_errorMessage!),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
           );
         }
       } catch (e) {
+        debugPrint('Login error: $e');
         if (mounted) {
+          setState(() {
+            _errorMessage = 'An error occurred. Please check your connection and try again.';
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(e.toString()),
+              content: Text(_errorMessage!),
               backgroundColor: Colors.red,
               duration: const Duration(seconds: 3),
             ),
@@ -164,6 +186,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your email';
                               }
+                              if (!RegExp(r'^[a-zA-Z0-9.]+@[a-zA0-9]+\.[a-zA-Z]+').hasMatch(value)) {
+                                return 'Please enter a valid email address';
+                              }
                               return null;
                             },
                           ),
@@ -197,6 +222,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 8),
+                          // Error message display
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
                           // Forgot Password Link
                           Align(
                             alignment: Alignment.centerRight,
@@ -271,4 +308,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-} 
+}
