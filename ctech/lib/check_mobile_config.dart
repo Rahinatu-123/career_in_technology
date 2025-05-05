@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 void main() {
   runApp(const MyApp());
@@ -40,18 +41,21 @@ class _ConfigurationCheckerState extends State<ConfigurationChecker> {
   Future<void> _checkConfiguration() async {
     try {
       // Check test connection endpoint
-      final testResponse = await http.get(
-        Uri.parse('http://localhost/ctech-web/api/test_connection.php'),
+      final testConnectionResponse = await http.get(
+        Uri.parse('http://20.251.152.247/career_in_technology/ctech-web/api/test_connection.php'),
         headers: {'Accept': 'application/json'},
       );
 
-      if (testResponse.statusCode != 200) {
-        throw Exception('Test connection failed: ${testResponse.statusCode}');
+      developer.log('Test connection response: ${testConnectionResponse.statusCode}');
+      developer.log('Test connection body: ${testConnectionResponse.body}');
+
+      if (testConnectionResponse.statusCode != 200) {
+        throw Exception('Test connection failed: ${testConnectionResponse.statusCode}');
       }
 
       // Check login endpoint
       final loginResponse = await http.post(
-        Uri.parse('http://localhost/ctech-web/api/login.php'),
+        Uri.parse('http://20.251.152.247/career_in_technology/ctech-web/api/login.php'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -61,6 +65,9 @@ class _ConfigurationCheckerState extends State<ConfigurationChecker> {
           'password': 'admin123',
         }),
       );
+
+      developer.log('Login response: ${loginResponse.statusCode}');
+      developer.log('Login body: ${loginResponse.body}');
 
       if (loginResponse.statusCode != 200) {
         throw Exception('Login test failed: ${loginResponse.statusCode}');
@@ -76,6 +83,7 @@ class _ConfigurationCheckerState extends State<ConfigurationChecker> {
         _isLoading = false;
       });
     } catch (e) {
+      developer.log('Configuration check failed: $e');
       setState(() {
         _status = 'Error: $e';
         _isLoading = false;

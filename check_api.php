@@ -22,7 +22,7 @@ try {
 }
 
 // Test login endpoint
-$loginUrl = 'http://localhost/ctech-web/api/login.php';
+$loginUrl = 'http://20.251.152.247/ctech-web/api/login.php';
 $testData = [
     'email' => 'rahinatulawal02@gmail.com',
     'password' => 'admin123'
@@ -46,7 +46,7 @@ echo "HTTP Status Code: $httpCode\n";
 echo "Response: $response\n";
 
 // Test connection endpoint
-$testUrl = 'http://localhost/ctech-web/api/test_connection.php';
+$testUrl = 'http://20.251.152.247/ctech-web/api/test_connection.php';
 $ch = curl_init($testUrl);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [

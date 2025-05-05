@@ -17,9 +17,12 @@ import 'screens/reset_password_screen.dart';
 import 'screens/profile_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 void main() async {
+  developer.log('Starting app initialization');
   WidgetsFlutterBinding.ensureInitialized();
+  developer.log('Flutter binding initialized');
   
   runApp(
     ChangeNotifierProvider(
@@ -27,6 +30,7 @@ void main() async {
       child: const MyApp(),
     ),
   );
+  developer.log('App started');
 }
 
 class MyApp extends StatelessWidget {
@@ -34,6 +38,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    developer.log('Building MyApp widget');
     final themeProvider = Provider.of<ThemeProvider>(context);
     
     return MaterialApp(
@@ -83,8 +88,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// API endpoints for authentication
-const String baseUrl = 'http://10.0.2.2/ctech-web/api';
+// Base URL for API endpoints
+const String baseUrl = 'http://20.251.152.247/career_in_technology/ctech-web/api';
 
 Future<bool> verifyOTP(String email, String otp) async {
   final response = await http.post(

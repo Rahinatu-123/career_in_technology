@@ -15,9 +15,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
   final ApiService _apiService = ApiService();
-  String _searchQuery = '';
   static const darkBlue = Color(0xFF0A2A36);
-  int _selectedIndex = 0;
   List<CareerProfile> _filteredProfiles = [];
   bool _isLoading = true;
   String _error = '';
@@ -65,29 +63,6 @@ class _HomePageState extends State<HomePage> {
                profile.description.toLowerCase().contains(query.toLowerCase());
       }).toList();
     });
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    switch (index) {
-      case 0:
-        // Already on home
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/career-profiles');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/inspiring-stories');
-        break;
-      case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SettingsPage()),
-        );
-        break;
-    }
   }
 
   void _navigateToProfile() {
@@ -249,213 +224,115 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          // Quick Access Buttons
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _QuickAccessButton(
-                      icon: Icons.work,
-                      label: 'Careers',
-                      onTap: () => Navigator.pushNamed(context, '/career-profiles'),
+          // Loading Indicator
+          if (_isLoading)
+            const SliverFillRemaining(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            )
+          // Error Message
+          else if (_error.isNotEmpty)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 48,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _QuickAccessButton(
-                      icon: Icons.people,
-                      label: 'Stories',
-                      onTap: () => Navigator.pushNamed(context, '/inspiring-stories'),
+                    const SizedBox(height: 16),
+                    Text(
+                      _error,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _QuickAccessButton(
-                      icon: Icons.lightbulb,
-                      label: 'Tech Words',
-                      onTap: () => Navigator.pushNamed(context, '/tech-words'),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadCareers,
+                      child: const Text('Retry'),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+              ),
+            )
+          // Career Profiles List
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final profile = _filteredProfiles[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: ListTile(
+                      title: Text(profile.title),
+                      subtitle: Text(
+                        profile.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CareerDetailPage(
+                              career: profile,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+                childCount: _filteredProfiles.length,
               ),
             ),
-          ),
-
-          // Featured Careers Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Featured Careers',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pushNamed(context, '/career-profiles'),
-                        child: const Text(
-                          'View All',
-                          style: TextStyle(color: darkBlue),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.85,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: _filteredProfiles.length,
-                    itemBuilder: (context, index) {
-                      final career = _filteredProfiles[index];
-                      return _CareerCard(career: career);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
-    );
-  }
-}
-
-class _QuickAccessButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _QuickAccessButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(13),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
+      bottomNavigationBar: BottomNavigationBar(
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: const Color(0xFF0A2A36)),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFF0A2A36),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+          BottomNavigationBarItem(
+            icon: Icon(Icons.work),
+            label: 'Careers',
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CareerCard extends StatelessWidget {
-  final CareerProfile career;
-
-  const _CareerCard({required this.career});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CareerDetailPage(career: career),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.auto_stories),
+            label: 'Stories',
           ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(13),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 120,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                image: DecorationImage(
-                  image: AssetImage(career.imagePath),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    career.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0A2A36),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    career.description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+        currentIndex: 0,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              // Already on home
+              break;
+            case 1:
+              Navigator.pushNamed(context, '/career-profiles');
+              break;
+            case 2:
+              Navigator.pushNamed(context, '/inspiring-stories');
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+              break;
+          }
+        },
       ),
     );
   }

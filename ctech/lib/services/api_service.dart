@@ -10,16 +10,8 @@ import '../models/inspiring_story.dart';
 class ApiService {
   // Base URL configuration for different platforms
   String get baseUrl {
-    if (kIsWeb) {
-      // For web
-      return 'http://localhost/ctech-web/api';
-    } else if (Platform.isAndroid) {
-      // For Android emulator
-      return 'http://10.0.2.2/ctech-web/api';
-    } else {
-      // For iOS simulator or physical devices
-      return 'http://localhost/ctech-web/api';
-    }
+    // For web
+    return 'http://20.251.152.247/career_in_technology/ctech-web/api';
   }
 
   // Common headers for all requests

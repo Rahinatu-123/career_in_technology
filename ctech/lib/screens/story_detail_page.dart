@@ -159,28 +159,30 @@ class _StoryDetailPageState extends State<StoryDetailPage> {
                 child: Text('No related careers found'),
               )
             else
-              ...relatedCareers.map((career) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Card(
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.work,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    title: Text(career.title),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CareerDetailPage(
-                            career: career,
+              Column(
+                children: relatedCareers.map((career) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Card(
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.work,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      title: Text(career.title),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CareerDetailPage(
+                              career: career,
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-              )),
+                )).toList(),
+              ),
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: () {

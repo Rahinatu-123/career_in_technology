@@ -69,7 +69,7 @@ try {
     }
 
     // Database connection
-    $host = 'localhost';
+    $host = '20.251.152.247';
     $dbname = 'career_tech_db';
     $username = 'root';
     $dbPassword = '';

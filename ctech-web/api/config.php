@@ -1,6 +1,6 @@
 <?php
 // Database configuration
-define('DB_HOST', 'localhost');
+define('DB_HOST', '20.251.152.247');
 define('DB_NAME', 'ctech');
 define('DB_USER', 'root');
 define('DB_PASS', '');

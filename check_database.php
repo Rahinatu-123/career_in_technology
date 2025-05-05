@@ -37,6 +37,6 @@ if ($result->num_rows == 0) {
 
 // Check API configuration
 echo "\nAPI Configuration:\n";
-echo "Base URL: http://localhost/ctech-web/api\n";
-echo "Login endpoint: http://localhost/ctech-web/api/login.php\n";
-echo "Test connection endpoint: http://localhost/ctech-web/api/test_connection.php\n"; 
+echo "Base URL: http://20.251.152.247/ctech-web/api\n";
+echo "Login endpoint: http://20.251.152.247/ctech-web/api/login.php\n";
+echo "Test connection endpoint: http://20.251.152.247/ctech-web/api/test_connection.php\n"; 

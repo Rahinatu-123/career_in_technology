@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
-import 'login_screen.dart';
-import 'forgot_password_screen.dart';
+import 'dart:developer' as developer;
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -15,6 +14,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   String _userName = '';
   String _userEmail = '';
+  bool _notificationsEnabled = true;
 
   @override
   void initState() {
@@ -27,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _userName = prefs.getString('user_name') ?? 'User';
       _userEmail = prefs.getString('user_email') ?? '';
+      _notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
     });
   }
 
@@ -39,7 +40,31 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _changePassword(String currentPassword, String newPassword) async {
+    try {
+      // TODO: Implement API call to change password
+      developer.log('Changing password for user: $_userEmail');
+      // For now, just show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password changed successfully!')),
+        );
+      }
+    } catch (e) {
+      developer.log('Error changing password: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to change password: $e')),
+        );
+      }
+    }
+  }
+
   void _showChangePasswordDialog() {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -49,6 +74,7 @@ class _SettingsPageState extends State<SettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
+                controller: currentPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'Current Password',
@@ -57,6 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: newPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'New Password',
@@ -65,6 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: confirmPasswordController,
                 obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'Confirm New Password',
@@ -80,11 +108,17 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             ElevatedButton(
               onPressed: () {
-                // TODO: Implement password change logic
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Password changed successfully!')),
+                if (newPasswordController.text != confirmPasswordController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('New passwords do not match')),
+                  );
+                  return;
+                }
+                _changePassword(
+                  currentPasswordController.text,
+                  newPasswordController.text,
                 );
+                Navigator.pop(context);
               },
               child: const Text('Change Password'),
             ),
@@ -92,6 +126,71 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('notifications_enabled', value);
+      setState(() {
+        _notificationsEnabled = value;
+      });
+      developer.log('Notifications ${value ? 'enabled' : 'disabled'}');
+    } catch (e) {
+      developer.log('Error toggling notifications: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update notification settings: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Account'),
+          content: const Text(
+            'Are you sure you want to delete your account? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Delete Account'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        // TODO: Implement API call to delete account
+        developer.log('Deleting account for user: $_userEmail');
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.clear();
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+      } catch (e) {
+        developer.log('Error deleting account: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to delete account: $e')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -154,10 +253,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     leading: const Icon(Icons.notifications),
                     title: const Text('Notifications'),
                     trailing: Switch(
-                      value: true,
-                      onChanged: (value) {
-                        // TODO: Implement notification settings
-                      },
+                      value: _notificationsEnabled,
+                      onChanged: _toggleNotifications,
                     ),
                   ),
                   const Divider(),
@@ -198,9 +295,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ListTile(
                     leading: const Icon(Icons.delete),
                     title: const Text('Delete Account'),
-                    onTap: () {
-                      // TODO: Implement delete account
-                    },
+                    onTap: _deleteAccount,
                   ),
                 ],
               ),

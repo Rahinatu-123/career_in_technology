@@ -24,13 +24,14 @@ logMessage("Test connection request received from: " . $_SERVER['REMOTE_ADDR']);
 
 try {
     // Database connection test
-    $host = 'localhost';
+    $host = '20.251.152.247';
     $dbname = 'career_tech_db';
     $username = 'root';
     $dbPassword = '';
     
     $dbConnected = false;
     $tableExists = false;
+    $errorMessage = '';
     
     try {
         $conn = new PDO("mysql:host=$host;dbname=$dbname", $username, $dbPassword);
@@ -43,7 +44,8 @@ try {
         
         logMessage("Database connection successful, users table exists: " . ($tableExists ? "Yes" : "No"));
     } catch (PDOException $e) {
-        logMessage("Database connection failed: " . $e->getMessage());
+        $errorMessage = $e->getMessage();
+        logMessage("Database connection failed: " . $errorMessage);
     }
     
     // Return server status information
@@ -53,10 +55,12 @@ try {
         'server' => [
             'php_version' => phpversion(),
             'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'Unknown',
+            'remote_address' => $_SERVER['REMOTE_ADDR'] ?? 'Unknown',
         ],
         'database' => [
             'connected' => $dbConnected,
-            'users_table_exists' => $tableExists
+            'users_table_exists' => $tableExists,
+            'error' => $errorMessage
         ]
     ]);
     

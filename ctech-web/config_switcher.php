@@ -7,7 +7,7 @@ $config = [
         'password' => ''
     ],
     'production' => [
-        'host' => 'sql106.infinityfree.com',
+        'host' => '20.251.152.247',
         'db' => 'if0_38834358_career_tech_db',
         'user' => 'if0_38834358',
         'password' => 'JZo1Uhd4c1cbF'
