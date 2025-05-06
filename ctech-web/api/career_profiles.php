@@ -50,18 +50,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $careers = [];
     while ($row = $result->fetch_assoc()) {
         $careers[] = [
-            'id' => $row['id'],
-            'title' => $row['title'],
-            'description' => $row['description'],
-            'skills' => $row['skills'],
-            'education' => $row['education'],
-            'salary_range' => $row['salary_range'],
-            'job_outlook' => $row['job_outlook'],
-            'created_at' => $row['created_at'],
-            'updated_at' => $row['updated_at'],
-            'image_path' => $row['image_path'],
-            'video_path' => $row['video_path'],
-            'audio_path' => $row['audio_path']
+            'id' => $row['id'] ?? null,
+            'title' => $row['title'] ?? null,
+            'description' => $row['description'] ?? null,
+            'skills' => $row['skills'] ?? null,
+            'education' => $row['education'] ?? null,
+            'salary_range' => $row['salary_range'] ?? null,
+            'job_outlook' => $row['job_outlook'] ?? null,
+            'created_at' => $row['created_at'] ?? null,
+            'updated_at' => $row['updated_at'] ?? null,
+            'image_path' => $row['image_path'] ?? null,
+            'video_path' => $row['video_path'] ?? null,
+            'audio_path' => $row['audio_path'] ?? null
         ];
     }
     
@@ -90,9 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data['education'],
         $data['salary_range'],
         $data['job_outlook'],
-        $data['image_path'] ?? '',
-        $data['video_path'] ?? '',
-        $data['audio_path'] ?? ''
+        $data['image_path'] ?? null,
+        $data['video_path'] ?? null,
+        $data['audio_path'] ?? null
     );
     
     if ($stmt->execute()) {
@@ -122,9 +122,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         $data['education'],
         $data['salary_range'],
         $data['job_outlook'],
-        $data['image_path'] ?? '',
-        $data['video_path'] ?? '',
-        $data['audio_path'] ?? '',
+        $data['image_path'] ?? null,
+        $data['video_path'] ?? null,
+        $data['audio_path'] ?? null,
         $data['id']
     );
     
@@ -160,4 +160,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
 }
 
 http_response_code(405);
-echo json_encode(['error' => 'Method not allowed']); 
+echo json_encode(['error' => 'Method not allowed']);
