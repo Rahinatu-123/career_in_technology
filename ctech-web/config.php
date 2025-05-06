@@ -1,5 +1,5 @@
 <?php
-$host = 'localhost';      // Database host
+$host = '20.251.152.247';      // Database host
 $db   = 'career_tech_db';  // Your local database name
 $user = 'root';          // XAMPP default username
 $password = '';          // XAMPP default password (empty)
