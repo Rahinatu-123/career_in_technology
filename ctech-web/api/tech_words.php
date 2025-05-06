@@ -4,12 +4,12 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 header('Access-Control-Allow-Headers: Content-Type');
 
-require_once 'config.php';
+require_once '../config.php';
 
 switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
         try {
-            $stmt = $pdo->query("SELECT * FROM tech_words");
+            $stmt = $conn->query("SELECT * FROM tech_words");
             $words = $stmt->fetchAll();
             echo json_encode($words);
         } catch (PDOException $e) {
@@ -23,11 +23,11 @@ switch ($_SERVER['REQUEST_METHOD']) {
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
         try {
-            $stmt = $pdo->prepare("INSERT INTO tech_words (word, definition, category) VALUES (?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO tech_words (word, definition, category) VALUES (?, ?, ?)");
             $stmt->execute([$data['word'], $data['definition'], $data['category']]);
             echo json_encode([
                 'success' => true,
-                'id' => $pdo->lastInsertId()
+                'id' => $conn->insert_id()
             ]);
         } catch (PDOException $e) {
             echo json_encode([
@@ -40,7 +40,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
     case 'PUT':
         $data = json_decode(file_get_contents('php://input'), true);
         try {
-            $stmt = $pdo->prepare("UPDATE tech_words SET word = ?, definition = ?, category = ? WHERE id = ?");
+            $stmt = $conn->prepare("UPDATE tech_words SET word = ?, definition = ?, category = ? WHERE id = ?");
             $stmt->execute([$data['word'], $data['definition'], $data['category'], $data['id']]);
             echo json_encode(['success' => true]);
         } catch (PDOException $e) {
@@ -55,7 +55,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
         $id = $_GET['id'] ?? null;
         if ($id) {
             try {
-                $stmt = $pdo->prepare("DELETE FROM tech_words WHERE id = ?");
+                $stmt = $conn->prepare("DELETE FROM tech_words WHERE id = ?");
                 $stmt->execute([$id]);
                 echo json_encode(['success' => true]);
             } catch (PDOException $e) {
@@ -77,4 +77,4 @@ switch ($_SERVER['REQUEST_METHOD']) {
             'success' => false,
             'error' => 'Invalid request method'
         ]);
-} 
+}
